@@ -1,0 +1,46 @@
+{
+  "project_name": "元素崩壞：遺落的試煉地",
+  "engine_type": "Text-Based RPG Engine (Pygame Front-View UI)",
+  "development_stage": "Core Engine Architecture Definition",
+  "design_philosophy": {
+    "methodology": "MVP + Data-Driven + Modular Design",
+    "content_engine_separation": true,
+    "reusable_engine_goal": true
+  },
+  "current_focus": [
+    "Cross-Module Event Schema",
+    "Complete v1 Specification Expansion",
+    "Module Boundary Definition",
+    "Flag Naming Convention"
+  ],
+  "core_systems": [
+    "Movement (Linear Forward / Retreat)",
+    "Dungeon (Step-based Progression + Event Pool)",
+    "Event Dispatcher (Unified Trigger System)",
+    "Battle (RPG2000-style Turn-Based)",
+    "Inventory & Items",
+    "Economy (Gold, Pricing, Drop Balance)",
+    "Crafting System",
+    "Guild & Quest System",
+    "Progress & Flag System"
+  ],
+  "data_driven_requirements": {
+    "all_content_externalized_to_json": true,
+    "engine_reads_but_does_not_define_content": true,
+    "schema_consistency_required": true
+  },
+  "future_scalability": {
+    "genre_pivot_possible": [
+      "Survival Mode",
+      "Post-Apocalyptic Setting"
+    ],
+    "engine_reuse_expected": true
+  },
+  "known_risks_to_avoid": [
+    "Cross-module coupling",
+    "Hardcoded story logic in engine",
+    "Inconsistent flag naming",
+    "Event format fragmentation"
+  ],
+  "next_action": "Define unified Event Schema and v1 Core Specification"
+}

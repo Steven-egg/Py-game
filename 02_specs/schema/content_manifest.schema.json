@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "content_manifest.schema.json",
+  "title": "Content Manifest Schema (manifest@1.0)",
+  "$comment": "Engine 1.0.0 | Spec 1.0.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "content_version", "hash", "paths"],
+  "properties": {
+    "schema": { "const": "manifest@1.0" },
+
+    "content_version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+
+    "hash": {
+      "type": "string",
+      "minLength": 8
+    },
+
+    "paths": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["monsters", "items", "quests", "dungeons", "flags"],
+      "properties": {
+        "monsters": { "type": "string" },
+        "items": { "type": "string" },
+        "quests": { "type": "string" },
+        "dungeons": { "type": "string" },
+        "flags": { "type": "string" },
+        "dialogues": { "type": "string" },
+        "events": { "type": "string" }
+      }
+    },
+
+    "id_aliases": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["from", "to"],
+            "additionalProperties": false,
+            "properties": {
+              "from": { "$ref": "common.schema.json#/$defs/Id" },
+              "to": { "$ref": "common.schema.json#/$defs/Id" }
+            }
+          }
+        },
+        "flags": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["from", "to"],
+            "additionalProperties": false,
+            "properties": {
+              "from": { "$ref": "common.schema.json#/$defs/FlagKey" },
+              "to": { "$ref": "common.schema.json#/$defs/FlagKey" }
+            }
+          }
+        }
+      }
+    }
+  }
+}

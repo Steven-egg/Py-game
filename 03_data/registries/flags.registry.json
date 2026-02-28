@@ -1,0 +1,10 @@
+{
+  "flags": [
+    "flg.kill.slime.count",
+    "flg.kill.wolf.count",
+    "flg.quest.q_main_first_blood.completed",
+    "flg.quest.side.slime_hunt_3.completed",
+    "flg.story.key.obtained_gate_key",
+    "flg.story.npc.met_guard"
+  ]
+}

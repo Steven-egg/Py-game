@@ -1,0 +1,102 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "event.schema.json",
+  "title": "Event Envelope schema (evt@1.0)",
+  "type": "object",
+  "$comment": "Engine 1.0.0 | Spec 1.0.0 | Hardened v1.1",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "id",
+    "ver",
+    "ts",
+    "source",
+    "actor",
+    "scope",
+    "tags",
+    "payload",
+    "ctx",
+    "trace"
+  ],
+  "properties": {
+    "schema": { "const": "evt@1.0" },
+    "id": { "$ref": "common.schema.json#/$defs/EventId" },
+    "ver": { "type": "integer", "minimum": 1 },
+    "ts": { "type": "integer", "minimum": 0 },
+
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["module"],
+      "properties": {
+        "module": { "$ref": "common.schema.json#/$defs/ModuleName" },
+        "entity_id": { "$ref": "common.schema.json#/$defs/EntityId" },
+        "node_id": { "$ref": "common.schema.json#/$defs/Id" },
+        "extra": {
+          "type": "object",
+          "additionalProperties": { "$ref": "common.schema.json#/$defs/JsonValue" }
+        }
+      }
+    },
+
+    "actor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["entity_id"],
+      "properties": {
+        "entity_id": { "$ref": "common.schema.json#/$defs/EntityId" },
+        "party_id": { "$ref": "common.schema.json#/$defs/Id" }
+      }
+    },
+
+    "scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["run_id", "scene"],
+      "properties": {
+        "run_id": { "$ref": "common.schema.json#/$defs/RunId" },
+        "scene": {
+          "type": "string",
+          "enum": ["dungeon", "battle", "town", "facility"]
+        },
+        "map_id": { "$ref": "common.schema.json#/$defs/Id" }
+      }
+    },
+
+    "tags": { "$ref": "common.schema.json#/$defs/Tags" },
+
+    "payload": {
+      "type": "object",
+      "additionalProperties": { "$ref": "common.schema.json#/$defs/JsonValue" }
+    },
+
+    "ctx": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "seed": { "type": "integer" },
+        "debug": { "type": "boolean" }
+      },
+      "default": {}
+    },
+
+    "trace": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["parent_event_id", "chain"],
+      "properties": {
+        "parent_event_id": {
+          "oneOf": [
+            { "$ref": "common.schema.json#/$defs/EventId" },
+            { "type": "null" }
+          ]
+        },
+        "chain": {
+          "type": "array",
+          "items": { "$ref": "common.schema.json#/$defs/EventId" },
+          "default": []
+        }
+      }
+    }
+  }
+}

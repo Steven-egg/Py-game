@@ -1,0 +1,29 @@
+{
+  "schema": "item@1.0",
+  "id": "sword_rusty",
+  "name": "txt.item.sword_rusty.name",
+  "desc": "txt.item.sword_rusty.desc",
+  "tags": [
+    "equipment",
+    "weapon"
+  ],
+  "type": "equipment",
+  "rarity": "common",
+  "stack": {
+    "stackable": false,
+    "max_stack": 1
+  },
+  "value": 120,
+  "weight": 2.2,
+  "flags": [],
+  "equip": {
+    "slot": "weapon",
+    "requirements": [],
+    "stat_modifiers": {
+      "atk": 3
+    },
+    "on_equip_effects": [],
+    "on_unequip_effects": []
+  },
+  "$schema": "02_specs/schema/item.schema.json"
+}

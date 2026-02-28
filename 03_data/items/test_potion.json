@@ -1,0 +1,34 @@
+{
+  "schema": "item@1.0",
+  "id": "potion_small",
+  "name": "txt.item.potion_small.name",
+  "desc": "txt.item.potion_small.desc",
+  "tags": [
+    "consumable",
+    "healing"
+  ],
+  "type": "consumable",
+  "rarity": "common",
+  "stack": {
+    "stackable": true,
+    "max_stack": 99
+  },
+  "value": 50,
+  "weight": 0.5,
+  "flags": [],
+  "use": {
+    "target": "self",
+    "cooldown_seconds": 0,
+    "conditions": [],
+    "effects": [
+      {
+        "type": "stat.modify",
+        "params": {
+          "stat": "hp",
+          "amount": 50
+        }
+      }
+    ]
+  },
+  "$schema": "02_specs/schema/item.schema.json"
+}

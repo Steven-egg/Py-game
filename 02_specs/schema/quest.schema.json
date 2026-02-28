@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "quest.schema.json",
+  "title": "Quest Schema (quest@1.0)",
+  "$comment": "Engine 1.0.0 | Spec 1.2.0 | Structure 1.2.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "id",
+    "ver",
+    "category",
+    "title_key",
+    "desc_key",
+    "accept_condition",
+    "complete_condition",
+    "rewards"
+  ],
+  "properties": {
+    "schema": { "const": "quest@1.0" },
+
+    "id": {
+      "type": "string",
+      "pattern": "^q\\.[a-z0-9_]+(\\.[a-z0-9_]+)+$",
+      "$comment": "Recommended: q.<category>.<name> (at least 2 segments after q.)"
+    },
+
+    "ver": { "type": "integer", "minimum": 1 },
+
+    "category": {
+      "type": "string",
+      "pattern": "^[a-z0-9_]+$"
+    },
+
+    "title_key": { "$ref": "common.schema.json#/$defs/TextKey" },
+    "desc_key": { "$ref": "common.schema.json#/$defs/TextKey" },
+
+    "tags": { "$ref": "common.schema.json#/$defs/Tags" },
+
+    "giver": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "npc_id": { "$ref": "common.schema.json#/$defs/Id" }
+      }
+    },
+
+    "accept_condition": { "$ref": "condition.schema.json#" },
+    "complete_condition": { "$ref": "condition.schema.json#" },
+
+    "rewards": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["effects"],
+      "properties": {
+        "effects": {
+          "type": "array",
+          "default": [],
+          "items": { "$ref": "effect.schema.json#" }
+        },
+        "reward_text_key": { "$ref": "common.schema.json#/$defs/TextKey" }
+      }
+    }
+  }
+}

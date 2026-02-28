@@ -1,0 +1,33 @@
+{
+  "schema": "monster@1.0",
+  "id": "m.forest.slime_01",
+  "name": "txt.monster.slime_name",
+  "desc": "txt.monster.slime_desc",
+  "tier": "normal",
+  "level": 1,
+  "spawn_condition": {
+    "type": "flag.int_compare",
+    "params": {
+      "key": "flg.player.stats.level",
+      "op": "gte",
+      "value": 1
+    }
+  },
+  "stats": {
+    "hp": 20,
+    "atk": 5,
+    "def": 2,
+    "agi": 3
+  },
+  "rewards": {
+    "exp": 10,
+    "gold": {
+      "min": 5,
+      "max": 5
+    }
+  },
+  "drops": {
+    "entries": []
+  },
+  "$schema": "02_specs/schema/monster.schema.json"
+}

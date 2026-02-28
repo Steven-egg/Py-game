@@ -1,0 +1,58 @@
+{
+  "project_name": "元素崩壞：遺落的試煉地",
+  "development_methodology": "MVP_Automation_Workflow",
+  "core_principles": {
+    "philosophy": "Data-Driven (數據驅動), Modular Design (模組化設計)",
+    "operation_style": "Minimalist Linear Movement (極簡直線移動/前進與離開)",
+    "visual_reference": "RPG Maker 2000 (RPG2000) Classic Style",
+    "loop": "探索/戰鬥 -> 資源獲取 -> 合成/強化 -> 職業轉職 -> 高難度挑戰"
+  },
+  "technical_stack": {
+    "engine": "Python + Pygame",
+    "asset_strategy": "AI Generated (DALL-E/ChatGPT for Art, Suno for BGM, Freesound for SFX)",
+    "data_format": "JSON (for monsters, items, quests, and dialogue)"
+  },
+  "system_modules": {
+    "movement": "Progress-based pointer system, random encounter check per step.",
+    "battle": "Turn-based, first-person view, AGI-based action order.",
+    "world_map": [
+      "初學者森林", "幽暗洞窟", "山寨", "冰雪迷宮", "火山迷宮", 
+      "海底世界", "暗黑地形", "龍宮", "轉職試煉地"
+    ],
+    "classes": ["劍士", "弓箭手", "魔法師", "聖職者"],
+    "facilities": ["冒險公會", "合成店", "商店", "轉職公會", "教堂"]
+  },
+  "data_schemas": {
+    "monster_schema": {
+      "id": "string",
+      "name": "string",
+      "stats": {"hp": "int", "mp": "int", "atk": "int", "def": "int", "agi": "int"},
+      "drops": [{"item_id": "string", "rate": "float"}],
+      "desc": "string"
+    },
+    "item_schema": {
+      "id": "string",
+      "name": "string",
+      "type": "weapon|armor|consumable|material",
+      "price": "int",
+      "stats_bonus": "object",
+      "class_limit": ["string"]
+    },
+    "quest_schema": {
+      "id": "string",
+      "rank": "E-S",
+      "target_id": "string",
+      "amount": "int",
+      "rewards": {"gold": "int", "exp": "int", "fame": "int"}
+    }
+  },
+  "automation_steps": [
+    "Step 1: Define specific JSON data for all modules (monsters, items, etc.)",
+    "Step 2: Scripting detailed narrative events for each dungeon node",
+    "Step 3: Generate visual and audio assets using standardized prompts",
+    "Step 4: Python code integration (Engine logic + JSON loading)"
+  ],
+  "future_expansion": {
+    "genre_pivot": "Survival Mode (convert stats to hunger/thirst/temp, dungeons to biomes)"
+  }
+}

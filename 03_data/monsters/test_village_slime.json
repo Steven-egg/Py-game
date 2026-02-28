@@ -1,0 +1,34 @@
+{
+  "schema": "monster@1.0",
+  "id": "m.village.slime_01",
+  "name": "txt.monster.village_slime.name",
+  "desc": "txt.monster.village_slime.desc",
+  "tier": "normal",
+  "level": 1,
+  "stats": {
+    "hp": 18,
+    "atk": 4,
+    "def": 1,
+    "agi": 2
+  },
+  "rewards": {
+    "exp": 8,
+    "gold": {
+      "min": 3,
+      "max": 5
+    }
+  },
+  "drops": {
+    "entries": [
+      {
+        "item_id": "slime_gel",
+        "weight": 100,
+        "qty": {
+          "min": 1,
+          "max": 1
+        }
+      }
+    ]
+  },
+  "$schema": "02_specs/schema/monster.schema.json"
+}

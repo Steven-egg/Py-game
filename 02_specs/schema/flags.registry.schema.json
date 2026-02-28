@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "flags.registry.schema.json",
+  "title": "Flag Registry Schema (flags@1.0)",
+  "$comment": "Engine 1.0.0 | Spec 1.0.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "flags"],
+  "properties": {
+    "schema": { "const": "flags@1.0" },
+
+    "flags": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["key", "type", "default", "owner"],
+        "properties": {
+          "key": {
+            "$ref": "common.schema.json#/$defs/FlagKey"
+          },
+          "type": {
+            "type": "string",
+            "enum": ["bool", "int"]
+          },
+          "default": {
+            "oneOf": [
+              { "type": "boolean" },
+              { "type": "integer" }
+            ]
+          },
+          "owner": {
+            "type": "string",
+            "enum": [
+              "system",
+              "story",
+              "quest",
+              "dungeon",
+              "npc",
+              "battle",
+              "economy"
+            ]
+          }
+        }
+      }
+    }
+  }
+}

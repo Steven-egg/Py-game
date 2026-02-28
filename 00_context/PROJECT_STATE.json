@@ -1,0 +1,95 @@
+{
+  "project_name": "Text RPG Engine",
+  "engine_version": "1.0.0",
+  "spec_version": "1.2.0",
+  "structure_version": "1.2.0",
+
+  "governance_mode": "Lock + Controlled Evolution",
+  "structure_anchor": "DD-004",
+
+  "engine_phase": "Phase C – Effect Dispatcher Expansion Complete",
+
+  "schema_layer": {
+    "completed": [
+      "common",
+      "condition",
+      "effect",
+      "event",
+      "flags.registry",
+      "content_manifest",
+      "save",
+      "monster",
+      "item",
+      "quest"
+    ],
+    "in_progress": [],
+    "planned": []
+  },
+
+  "engine_layer_capabilities": {
+    "state_ssot": "save.game_state = { flags, inventory, vars }",
+    "effect_dispatcher": [
+      "gold.add",
+      "flag.set",
+      "inventory.add",
+      "inventory.remove",
+      "flag.int_add",
+      "var.add"
+    ]
+  },
+
+  "validation": {
+    "mvl_protocol_version": "1.0",
+    "monster_mvl_status": "PASS",
+    "item_mvl_status": "PASS",
+    "quest_mvl_status": "PASS",
+    "last_validation_date": "2026-02-27"
+  },
+
+  "validation_tools": {
+    "location": "05_engine/validation/",
+    "scripts": [
+      "mvl_test_v1.py",
+      "mvl_test_v2.py"
+    ]
+  },
+
+  "official_fixture": {
+    "monster": "03_data/monsters/test_*.json",
+    "item": "03_data/items/test_*.json",
+    "quest": "03_data/quests/test_*.json"
+  },
+
+  "notes": [
+    "Monster vertical slice fully validated",
+    "Item vertical slice fully validated",
+    "Quest vertical slice fully validated (MVL v2 PASS)",
+    "Effect/Event schema filenames aligned with SSOT semantics",
+    "MVL auto-scan test_*.json enabled",
+    "Schema Gate and Behavior Gate confirmed stable",
+
+    "Engine Phase B MVL implemented: content_loader / quest_runtime / effect_executor / save_manager / cli_mvl",
+    "Engine loader treats missing $schema in fixtures as warning (non-fatal) for CLI MVL loop",
+    "CLI MVL loop verified: load → accept → progress → check → complete → save",
+    "CLI questdump enhanced to show semantic previews (complete_condition + rewards.effects shape)",
+
+    "Behavior Gate verified (smoke tests): q.side.slime_hunt = flag.int_compare(gte) on flg.kill.slime.count; q.elite.trial_of_balance = and([flag.int_compare, inventory.has])",
+    "Accept Gate implemented: accept_condition evaluated via Condition evaluator (flag.is_true / flag.is_false)",
+    "State SSOT verified: condition evaluation reads flags/inventory from save.game_state (single source of truth)",
+    "Effect dispatch verified on quest completion: rewards.effects supports gold.add + flag.set (MVP)",
+    "Save evolution (backward compatible): SaveBlob includes completed_ids (list[str])",
+    "CLI safety: active quest guard prevents accepting new quest if active_quest not completed",
+    "CLI behavior: complete clears active_quest and records quest_id into completed_ids",
+    "CLI lobby list: list prints [DONE]/[ACTIVE]/[READY]/[LOCKED] with LOCKED reason",
+
+    "Phase C completed (Engine layer only): expanded effect dispatcher inventory.add / inventory.remove / flag.int_add / var.add",
+    "Phase C regression PASS: legacy effects (gold.add / flag.set) remain stable; save compatibility preserved; no schema/structure changes; no version bump"
+  ],
+
+  "next_targets": [
+    "Decide canonical semantics for one-shot vs repeatable quests (completed_ids vs allow re-accept)",
+    "Option: add quest completion history object (completed_at per id) if needed (non-breaking evolution)",
+    "Option: list command enhance to show short 'needs:<flag>' formatting (QoL)",
+    "Phase C: add quest-type condition leaf (quest.is_completed) if quest-gating needs it (DD + schema update)"
+  ]
+}

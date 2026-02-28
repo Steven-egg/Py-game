@@ -1,0 +1,19 @@
+{
+  "schema": "item@1.0",
+  "id": "wolf_pelt",
+  "name": "txt.item.wolf_pelt.name",
+  "desc": "txt.item.wolf_pelt.desc",
+  "tags": [
+    "material"
+  ],
+  "type": "material",
+  "rarity": "common",
+  "stack": {
+    "stackable": true,
+    "max_stack": 99
+  },
+  "value": 20,
+  "weight": 0.8,
+  "flags": [],
+  "$schema": "02_specs/schema/item.schema.json"
+}

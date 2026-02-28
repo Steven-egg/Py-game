@@ -1,0 +1,72 @@
+{
+  "schema": "quest@1.0",
+  "id": "q.elite.trial_of_balance",
+  "ver": 1,
+  "category": "elite",
+  "title_key": "txt.quest.elite.trial_of_balance.title",
+  "desc_key": "txt.quest.elite.trial_of_balance.desc",
+  "tags": [
+    "elite",
+    "compound"
+  ],
+  "accept_condition": {
+    "type": "flag.is_true",
+    "params": {
+      "key": "flg.story.gate.gate_unlocked"
+    }
+  },
+  "complete_condition": {
+    "type": "and",
+    "params": {
+      "conditions": [
+        {
+          "type": "flag.int_compare",
+          "params": {
+            "key": "flg.kill.goblin.count",
+            "op": "gte",
+            "value": 3
+          }
+        },
+        {
+          "type": "inventory.has",
+          "params": {
+            "item_id": "itm.relic.balance_fragment",
+            "qty": 1
+          }
+        }
+      ]
+    }
+  },
+  "rewards": {
+    "effects": [
+      {
+        "type": "gold.add",
+        "target": {
+          "entity_id": "pc.player"
+        },
+        "params": {
+          "amount": 200
+        }
+      },
+      {
+        "type": "flag.set",
+        "target": {
+          "world": "global"
+        },
+        "params": {
+          "key": "flg.quest.elite.trial_of_balance_completed",
+          "value": true
+        }
+      },
+      {
+        "type": "inventory.add",
+        "params": {
+          "item_id": "potion",
+          "count": 2
+        }
+      }
+    ],
+    "reward_text_key": "txt.quest.elite.trial_of_balance.reward"
+  },
+  "$schema": "02_specs/schema/quest.schema.json"
+}

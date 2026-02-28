@@ -1,0 +1,228 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "item.schema.json",
+  "title": "Item schema for Text RPG Engine",
+  "type": "object",
+  "additionalProperties": false,
+
+  "required": [
+    "schema",
+    "id",
+    "name",
+    "desc",
+    "type",
+    "rarity",
+    "stack",
+    "value",
+    "weight"
+  ],
+
+  "properties": {
+    "schema": {
+      "type": "string",
+      "const": "item@1.0",
+      "description": "Schema gate identifier."
+    },
+
+    "id": { "$ref": "common.schema.json#/$defs/Id" },
+
+    "name": {
+      "description": "Text key for item name (matches your monster style).",
+      "$ref": "common.schema.json#/$defs/TextKey"
+    },
+
+    "desc": {
+      "description": "Text key for item description (matches your monster style).",
+      "$ref": "common.schema.json#/$defs/TextKey"
+    },
+
+    "tags": { "$ref": "common.schema.json#/$defs/Tags" },
+
+    "type": {
+      "type": "string",
+      "enum": ["consumable", "equipment", "material", "key_item", "misc"]
+    },
+
+    "subtype": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "description": "Optional finer classification (e.g., potion, sword, ore)."
+    },
+
+    "rarity": {
+      "type": "string",
+      "enum": ["common", "uncommon", "rare", "epic", "legendary"]
+    },
+
+    "stack": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["stackable", "max_stack"],
+      "properties": {
+        "stackable": { "type": "boolean" },
+        "max_stack": { "type": "integer", "minimum": 1, "maximum": 9999 }
+      }
+    },
+
+    "value": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 999999999,
+      "description": "Gold value reference."
+    },
+
+    "weight": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 999999,
+      "description": "Weight reference."
+    },
+
+    "flags": {
+      "type": "array",
+      "description": "Optional flag keys associated with this item (engine-defined semantics).",
+      "items": { "$ref": "common.schema.json#/$defs/FlagKey" },
+      "uniqueItems": true,
+      "default": []
+    },
+
+    "use": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Consumable behavior (required when type=consumable).",
+      "required": ["effects"],
+      "properties": {
+        "target": {
+          "type": "string",
+          "enum": ["self", "ally", "enemy", "any"],
+          "default": "self"
+        },
+        "cooldown_seconds": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 86400,
+          "default": 0
+        },
+        "conditions": {
+          "type": "array",
+          "default": [],
+          "items": { "$ref": "#/$defs/ConditionRef" }
+        },
+        "effects": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/EffectRef" }
+        }
+      }
+    },
+
+    "equip": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Equipment behavior (required when type=equipment).",
+      "required": ["slot"],
+      "properties": {
+        "slot": {
+          "type": "string",
+          "enum": ["head", "chest", "legs", "hands", "feet", "weapon", "offhand", "accessory"]
+        },
+        "requirements": {
+          "type": "array",
+          "default": [],
+          "items": { "$ref": "#/$defs/ConditionRef" }
+        },
+        "stat_modifiers": {
+          "type": "object",
+          "additionalProperties": false,
+          "default": {},
+          "properties": {
+            "hp": { "type": "integer", "minimum": -999999, "maximum": 999999 },
+            "mp": { "type": "integer", "minimum": -999999, "maximum": 999999 },
+            "atk": { "type": "integer", "minimum": -999999, "maximum": 999999 },
+            "def": { "type": "integer", "minimum": -999999, "maximum": 999999 },
+            "agi": { "type": "integer", "minimum": -999999, "maximum": 999999 },
+            "crit": { "type": "number", "minimum": -1, "maximum": 1 }
+          }
+        },
+        "on_equip_effects": {
+          "type": "array",
+          "default": [],
+          "items": { "$ref": "#/$defs/EffectRef" }
+        },
+        "on_unequip_effects": {
+          "type": "array",
+          "default": [],
+          "items": { "$ref": "#/$defs/EffectRef" }
+        }
+      }
+    }
+  },
+
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "stack": {
+            "properties": { "stackable": { "const": false } },
+            "required": ["stackable"]
+          }
+        },
+        "required": ["stack"]
+      },
+      "then": {
+        "properties": {
+          "stack": {
+            "properties": { "max_stack": { "const": 1 } },
+            "required": ["max_stack"]
+          }
+        }
+      }
+    },
+
+    {
+      "if": { "properties": { "type": { "const": "consumable" } }, "required": ["type"] },
+      "then": { "required": ["use"] },
+      "else": true
+    },
+
+    {
+      "if": { "properties": { "type": { "const": "equipment" } }, "required": ["type"] },
+      "then": { "required": ["equip"] },
+      "else": true
+    },
+
+    {
+      "if": { "properties": { "type": { "enum": ["material", "key_item", "misc"] } }, "required": ["type"] },
+      "then": {
+        "properties": {
+          "use": false,
+          "equip": false
+        }
+      }
+    }
+  ],
+
+  "$defs": {
+    "EffectRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "params"],
+      "properties": {
+        "type": { "$ref": "common.schema.json#/$defs/EffectType" },
+        "params": { "$ref": "common.schema.json#/$defs/JsonValue" }
+      }
+    },
+
+    "ConditionRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "params"],
+      "properties": {
+        "type": { "$ref": "common.schema.json#/$defs/EffectType" },
+        "params": { "$ref": "common.schema.json#/$defs/JsonValue" }
+      },
+      "$comment": "Condition type uses the same dotted pattern as EffectType to stay compatible with current patterns (e.g., flag.int_compare)."
+    }
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "version": "engine_phase_b_mvl_1",
+  "active_quest": {
+    "quest_id": "q.side.slime_hunt",
+    "accepted_at": "2026-02-25T13:56:36Z",
+    "progress": {
+      "items": {},
+      "kills": {},
+      "flags": {},
+      "vars": {}
+    },
+    "completed_at": null
+  },
+  "completed_ids": [],
+  "game_state": {
+    "flags": {},
+    "inventory": {},
+    "vars": {}
+  }
+}

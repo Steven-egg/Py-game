@@ -1,0 +1,74 @@
+{
+  "schema": "quest@1.0",
+  "id": "q.main.first_blood",
+  "ver": 1,
+  "category": "main",
+  "title_key": "txt.quest.main.first_blood.title",
+  "desc_key": "txt.quest.main.first_blood.desc",
+  "tags": [
+    "main",
+    "starter"
+  ],
+  "giver": {
+    "npc_id": "npc.villager.chief"
+  },
+  "accept_condition": {
+    "type": "flag.is_false",
+    "params": {
+      "key": "flg.quest.q_main_first_blood.accepted"
+    }
+  },
+  "complete_condition": {
+    "type": "inventory.has",
+    "params": {
+      "item_id": "itm.material.slime_residue",
+      "qty": 10
+    }
+  },
+  "rewards": {
+    "effects": [
+      {
+        "type": "gold.add",
+        "target": {
+          "entity_id": "pc.player"
+        },
+        "params": {
+          "amount": 100
+        }
+      },
+      {
+        "type": "flag.set",
+        "target": {
+          "world": "global"
+        },
+        "params": {
+          "key": "flg.quest.q_main_first_blood.completed",
+          "value": true
+        }
+      },
+      {
+        "type": "flag.int_add",
+        "params": {
+          "key": "flg.test.phase_c.counter",
+          "delta": 7
+        }
+      },
+      {
+        "type": "var.add",
+        "params": {
+          "key": "gold",
+          "delta": 10
+        }
+      },
+      {
+        "type": "inventory.remove",
+        "params": {
+          "item_id": "potion",
+          "count": 1
+        }
+      }
+    ],
+    "reward_text_key": "txt.quest.main.first_blood.reward"
+  },
+  "$schema": "02_specs/schema/quest.schema.json"
+}

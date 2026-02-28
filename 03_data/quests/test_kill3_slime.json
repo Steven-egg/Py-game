@@ -1,0 +1,52 @@
+{
+  "schema": "quest@1.0",
+  "id": "q.side.slime_hunt_3",
+  "ver": 1,
+  "category": "side",
+  "title_key": "txt.quest.side.slime_hunt_3.title",
+  "desc_key": "txt.quest.side.slime_hunt_3.desc",
+  "tags": [
+    "kill",
+    "starter"
+  ],
+  "accept_condition": {
+    "type": "flag.is_false",
+    "params": {
+      "key": "flg.quest.side.slime_hunt_3.completed"
+    }
+  },
+  "complete_condition": {
+    "type": "flag.int_compare",
+    "params": {
+      "key": "flg.kill.slime.count",
+      "op": "gte",
+      "value": 3
+    }
+  },
+  "rewards": {
+    "effects": [
+      {
+        "type": "inventory.add",
+        "target": {
+          "entity_id": "pc.player"
+        },
+        "params": {
+          "item_id": "potion_small",
+          "qty": 1
+        }
+      },
+      {
+        "type": "flag.set",
+        "target": {
+          "world": "global"
+        },
+        "params": {
+          "key": "flg.quest.side.slime_hunt_3.completed",
+          "value": true
+        }
+      }
+    ],
+    "reward_text_key": "txt.quest.side.slime_hunt_3.reward"
+  },
+  "$schema": "02_specs/schema/quest.schema.json"
+}

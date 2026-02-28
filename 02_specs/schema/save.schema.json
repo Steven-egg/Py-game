@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "save.schema.json",
+  "title": "Save File Schema (save@1.0)",
+  "$comment": "Engine 1.0.0 | Spec 1.0.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["save_schema", "engine_version", "content_manifest_hash", "state"],
+  "properties": {
+    "save_schema": { "const": "save@1.0" },
+
+    "engine_version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+
+    "content_manifest_hash": {
+      "type": "string",
+      "minLength": 8
+    },
+
+    "state": {
+      "type": "object"
+    }
+  }
+}

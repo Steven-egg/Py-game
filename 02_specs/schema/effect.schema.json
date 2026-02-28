@@ -1,0 +1,124 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "effect.schema.json",
+  "title": "Effect schema (engine executable instruction)",
+  "type": "object",
+  "$comment": "Engine 1.0.0 | Spec 1.0.0 | Hardened v1.1",
+  "additionalProperties": false,
+  "required": ["type", "target", "params"],
+  "properties": {
+    "type": {
+      "type": "string",
+      "enum": [
+        "flag.set",
+        "flag.unset",
+        "flag.toggle",
+        "flag.add_int",
+        "stat.modify",
+        "inventory.add",
+        "inventory.remove",
+        "gold.add",
+        "battle.start",
+        "battle.end",
+        "loot.roll",
+        "quest.accept",
+        "quest.progress_add",
+        "quest.complete",
+        "ui.message",
+        "ui.choice",
+        "scene.change"
+      ]
+    },
+
+    "target": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": false,
+      "properties": {
+        "entity_id": { "$ref": "common.schema.json#/$defs/EntityId" },
+        "party_id": { "$ref": "common.schema.json#/$defs/Id" },
+        "inventory_id": { "$ref": "common.schema.json#/$defs/Id" },
+        "world": { "type": "string" }
+      }
+    },
+
+    "params": {
+      "type": "object"
+    },
+
+    "meta": {
+      "type": "object",
+      "additionalProperties": { "$ref": "common.schema.json#/$defs/JsonValue" },
+      "default": {}
+    }
+  },
+
+  "allOf": [
+    {
+      "if": { "properties": { "type": { "const": "flag.set" } } },
+      "then": {
+        "properties": {
+          "params": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["key", "value"],
+            "properties": {
+              "key": { "$ref": "common.schema.json#/$defs/FlagKey" },
+              "value": {
+                "type": ["boolean", "integer"]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "type": { "const": "stat.modify" } } },
+      "then": {
+        "properties": {
+          "params": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["stat", "op", "value"],
+            "properties": {
+              "stat": { "type": "string", "minLength": 1 },
+              "op": { "enum": ["add", "mul", "set", "min", "max"] },
+              "value": { "type": ["integer", "number"] }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "type": { "const": "inventory.add" } } },
+      "then": {
+        "properties": {
+          "params": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["item_id", "qty"],
+            "properties": {
+              "item_id": { "$ref": "common.schema.json#/$defs/Id" },
+              "qty": { "type": "integer", "minimum": 1 }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "type": { "const": "ui.message" } } },
+      "then": {
+        "properties": {
+          "params": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["text"],
+            "properties": {
+              "text": { "$ref": "common.schema.json#/$defs/TextKey" }
+            }
+          }
+        }
+      }
+    }
+  ]
+}

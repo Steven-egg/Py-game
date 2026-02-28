@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "common.schema.json",
+  "title": "Common definitions for Text RPG Engine content",
+  "type": "object",
+  "$comment": "Engine 1.0.0 | Spec 1.0.0 | Hardened v1.1",
+  "$defs": {
+    "Id": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^[a-z][a-z0-9_.:-]*$"
+    },
+    "EventId": {
+      "type": "string",
+      "pattern": "^evt\\.[a-z0-9_]+\\.[a-z0-9_]+(\\.[a-z0-9_]+)*$"
+    },
+    "EffectType": {
+      "type": "string",
+      "pattern": "^[a-z0-9_]+\\.[a-z0-9_]+$"
+    },
+    "FlagKey": {
+      "type": "string",
+      "pattern": "^flg\\.[a-z]+\\.[a-z0-9_]+\\.[a-z0-9_]+(@[a-z0-9:._-]+)?$"
+    },
+    "ModuleName": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*$"
+    },
+    "EntityId": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_.:-]*$"
+    },
+    "RunId": {
+      "type": "string",
+      "pattern": "^run\\.[0-9]{8}\\.[0-9]{4}$"
+    },
+    "TextKey": {
+      "type": "string",
+      "pattern": "^txt\\.[a-z0-9_]+\\.[a-z0-9_.]+$"
+    },
+    "Tags": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "default": []
+    },
+    "JsonPrimitive": {
+      "type": [
+        "string",
+        "number",
+        "integer",
+        "boolean",
+        "null"
+      ]
+    },
+    "JsonValue": {
+      "oneOf": [
+        { "$ref": "#/$defs/JsonPrimitive" },
+        {
+          "type": "array",
+          "items": { "$ref": "#/$defs/JsonValue" }
+        },
+        {
+          "type": "object",
+          "additionalProperties": { "$ref": "#/$defs/JsonValue" }
+        }
+      ]
+    }
+  }
+}

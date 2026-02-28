@@ -1,0 +1,20 @@
+{
+  "schema": "item@1.0",
+  "id": "slime_gel",
+  "name": "txt.item.slime_gel.name",
+  "desc": "txt.item.slime_gel.desc",
+  "tags": [
+    "material",
+    "starter"
+  ],
+  "type": "material",
+  "rarity": "common",
+  "stack": {
+    "stackable": true,
+    "max_stack": 99
+  },
+  "value": 5,
+  "weight": 0.1,
+  "flags": [],
+  "$schema": "02_specs/schema/item.schema.json"
+}

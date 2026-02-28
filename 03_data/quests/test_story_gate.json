@@ -1,0 +1,40 @@
+{
+  "schema": "quest@1.0",
+  "id": "q.main.unlock_gate",
+  "ver": 1,
+  "category": "main",
+  "title_key": "txt.quest.main.unlock_gate.title",
+  "desc_key": "txt.quest.main.unlock_gate.desc",
+  "tags": [
+    "story",
+    "flag"
+  ],
+  "accept_condition": {
+    "type": "flag.is_true",
+    "params": {
+      "key": "flg.story.npc.met_guard"
+    }
+  },
+  "complete_condition": {
+    "type": "flag.is_true",
+    "params": {
+      "key": "flg.story.key.obtained_gate_key"
+    }
+  },
+  "rewards": {
+    "effects": [
+      {
+        "type": "flag.set",
+        "target": {
+          "world": "global"
+        },
+        "params": {
+          "key": "flg.story.gate.gate_unlocked",
+          "value": true
+        }
+      }
+    ],
+    "reward_text_key": "txt.quest.main.unlock_gate.reward"
+  },
+  "$schema": "02_specs/schema/quest.schema.json"
+}
