@@ -43,7 +43,7 @@
     "monster_mvl_status": "PASS",
     "item_mvl_status": "PASS",
     "quest_mvl_status": "PASS",
-    "last_validation_date": "2026-02-27"
+    "last_validation_date": "2026-03-01"
   },
 
   "validation_tools": {
@@ -84,6 +84,7 @@
 
     "Phase C completed (Engine layer only): expanded effect dispatcher inventory.add / inventory.remove / flag.int_add / var.add",
     "Phase C regression PASS: legacy effects (gold.add / flag.set) remain stable; save compatibility preserved; no schema/structure changes; no version bump"
+    "Schema gate: fixtures now include $schema pointing to 02_specs/schema/*; cli_mvl load issues=0 (PASS)."
   ],
 
   "next_targets": [
