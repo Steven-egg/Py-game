@@ -1,118 +1,296 @@
-05\_engine – MVL Runtime (Phase B)
-This folder contains the Phase B Minimal Viable Loop (MVL) Runtime and CLI tools.
+# 05_engine – MVL Runtime
 
-Phase B is the executable runtime layer used to validate:
+This folder contains the executable MVL (Minimal Viable Loop) runtime used to validate:
 
-Schema Discipline: Loader validation against existing specs.
-
-Governance Behavior Gates: Ensuring logic follows defined protocols.
-
-State SSOT: Single Source of Truth consistency.
-
-MVL Loop Correctness: accept → progress → check → complete → save.
-
-This layer is NOT gameplay, but a deterministic verification runtime.
-
-Role in Architecture (Phase B)
-
-State SSOT: save.game\_state (flags / inventory / vars) is the single source of truth for condition evaluation and effect application.
-Runtime Execution: Processing quest logic based on JSON definitions.
-
-Condition Evaluation: Logic for accept\_condition and complete\_condition.
-
-Effect Dispatch: MVP implementation for applying rewards (gold, flags).
-
-Save State Synchronization: Persistent storage of player progress and history.
-
-CLI-based Inspection: A "game lobby" interface to monitor state.
-
-Quick Start \& Core Concepts
-
-1. Load Content \& Warnings
-   Bash
-   python 05\_engine/cli\_mvl.py load
-   **Note on $schema:** Warnings about missing $schema fields in fixtures are non-fatal for runtime but should be resolved in the data layer for full compliance.
-2. Save Slots \& Typical States
-   Use --slot to isolate different testing scenarios:
-
-Slot 2 (slot\_2.json): Demonstrates an Active State. Contains an ongoing quest. Use this to test progress and complete.
-
-Slot 3 (slot\_3.json): Demonstrates a Post-Completion State. Contains completed\_ids. Use this to test "one-shot" quest guards.
-
-3. The Quest Lobby (list)
-   The list command dynamically checks the environment and save state:
-
-\[DONE]: Quest ID is in completed\_ids.
-
-\[ACTIVE]: Current active\_quest in the slot.
-
-\[READY]: accept\_condition is met.
-
-\[LOCKED]: accept\_condition failed (displays the specific missing requirement).
-
-Bash
-python 05\_engine/cli\_mvl.py --slot slot\_3 list
-The MVL Loop (Step-by-Step)
-Step 1: Accept a Quest
-Bash
-python 05\_engine/cli\_mvl.py --slot slot\_1 accept <quest\_id>
-Guard 1: Blocked if another quest is already active.
-
-Guard 2: Blocked if the quest\_id is already in completed\_ids (default one-shot quest semantics).
-
-Step 2: Report Progress
-Updates the trackers and the global game state.
-
-Bash
-
-# Update kill counts
-
-python 05\_engine/cli\_mvl.py --slot slot\_1 progress kill slime 5
-
-# Update world flags
-
-python 05\_engine/cli\_mvl.py --slot slot\_1 progress flag flg.npc.met\_guard true
-Step 3: Complete Quest
-Evaluates completion conditions and triggers effects.
-
-Bash
-python 05\_engine/cli\_mvl.py --slot slot\_1 complete
-Upon success:
-
-rewards.effects are applied to game\_state.
-
-quest\_id is moved to completed\_ids.
-
-active\_quest is set to None.
-
-Step 4: Verification (show)
-Inspect the final SSOT state to ensure data integrity.
-
-Bash
-python 05\_engine/cli\_mvl.py --slot slot\_1 show
-Debugging: Quest Dump
-For a semantic preview of a quest's internal logic without opening the JSON:
-
-Bash
-python 05\_engine/cli\_mvl.py questdump q.side.slime\_hunt
+- Quest flow correctness
+- Condition evaluation (accept / complete)
+- Effect dispatch behavior
+- Save-state integrity (SSOT)
+- CLI-driven inspection & debugging
+- Phase D.1 runtime location context (NEW)
 
 ---
 
+## Current Verified State
 
+- Phase C: Core quest loop → PASS
+- Phase D.1: Runtime location context & completion gate → PASS
 
-\## Phase B Runtime Semantics (Current)
+This runtime is **NOT gameplay**, but a deterministic verification environment.
 
+---
 
+## Architecture Role
 
-\- One active quest per slot.
+### State SSOT
+- `save.game_state` is the single source of truth
+  - flags
+  - inventory
+  - vars
 
-\- One-shot quests by default (tracked via completed\_ids).
+All conditions and effects operate strictly on this state.
 
-\- accept\_condition and complete\_condition use the same recursive Condition evaluator.
+---
 
-\- All conditions read from save.game\_state (SSOT).
+### Runtime Responsibilities
 
-\- Effects mutate save.game\_state only (never fixture data).
+- Quest lifecycle:
+  - accept → progress → check → complete → save
 
-\- CLI list acts as a live validation panel.
+- Condition evaluation:
+  - accept_condition
+  - complete_condition
+  - recursive condition schema
 
+- Effect dispatch:
+  - gold / flags / inventory / vars
+
+- Save synchronization:
+  - active_quest
+  - completed_ids
+  - game_state
+
+---
+
+### CLI = Debug Console
+
+The CLI acts as:
+
+- Quest lobby
+- State inspector
+- Behavior validation panel
+
+---
+
+## Quick Start (IMPORTANT)
+
+### Launch interactive CLI
+
+```bash
+py cli_mvl.py --slot slot_1
+```
+## Available Commands
+
+Inside the CLI session:
+
+```text
+help
+load
+list
+accept <quest_id>
+
+progress <kind> <key> [value]
+  kind: item | kill | flag | var
+
+check
+complete
+
+where
+locations
+move <location_id>
+
+show
+questdump <quest_id>
+
+save
+reload
+exit
+```
+---
+
+## MVL Loop (Core Flow)
+
+### Step 1: Accept Quest
+
+```text
+accept <quest_id>
+```
+
+Guards:
+
+* blocked if another quest is active
+* blocked if already completed
+
+---
+
+### Step 2: Report Progress
+
+```text
+progress kill slime 5
+progress flag flg.npc.met_guard true
+```
+
+Updates:
+
+* quest progress (ActiveQuest)
+* global game_state (SSOT)
+
+---
+
+### Step 3: Check Completion
+
+```text
+check
+```
+Evaluates:
+
+1. complete_condition / objectives
+2. (NEW) location gate
+
+---
+
+### Step 4: Complete Quest
+
+```text
+complete
+```
+
+On success:
+
+* apply rewards.effects
+* append to completed_ids
+* clear active_quest
+
+---
+
+### Step 5: Inspect State
+
+```text
+show
+```
+---
+
+## Quest Lobby (list)
+
+```text
+list
+```
+Displays:
+
+* [DONE] → quest_id in completed_ids
+* [ACTIVE] → current active quest
+* [READY] → accept_condition satisfied
+* [LOCKED] → accept_condition failed (with reason)
+
+---
+
+## Debugging Tools
+
+### Quest Dump
+
+```text
+questdump <quest_id>
+```
+
+Shows:
+
+* condition type
+* parameters preview
+* effects structure
+
+Used for:
+
+* validating condition patterns
+* checking effect semantics
+
+---
+
+## Phase D.1 – Runtime Location Context
+
+### Overview
+
+Introduces a session-scoped location layer.
+
+This is:
+
+* runtime-only
+* NOT part of schema
+* NOT stored in save
+* engine-side behavior only
+
+---
+
+### Available Locations
+
+* start_village (織星村)
+* forest_edge (迷霧森林)
+* town_gate (王都大門)
+
+---
+
+### Location Commands
+
+```text
+where
+locations
+move <location_id>
+```
+
+---
+
+### Behavior
+
+* CLI maintains current_location in runtime_context
+* Quest completion may be gated by location
+
+---
+
+### Example: Location Gate
+
+```text
+> accept q.side.slime_hunt
+> progress kill slime 5
+
+> check
+# blocked (wrong location)
+
+> move forest_edge
+
+> check
+# now complete = True
+
+> complete
+# quest completes successfully
+```
+
+---
+
+### Runtime Semantics
+* One active quest per slot
+* One-shot quests (via completed_ids)
+* All conditions read from game_state (SSOT)
+* Effects mutate game_state only
+* CLI list acts as live validation panel
+* Location context is session-only (Phase D.1)
+
+---
+
+### Important Constraints
+* No schema changes in Phase D.1
+* No loader changes
+* No structure changes
+* Location system is engine-side only
+
+---
+
+### Notes
+* $schema warnings in fixtures are non-fatal at runtime
+* Schema validation is handled by MVL validation layer
+* Runtime focuses on behavior verification only
+
+---
+
+### Summary
+
+This runtime provides a deterministic testbed for:
+
+* data-driven quest logic
+* condition correctness
+* effect application
+* state consistency
+* (NEW) location-aware behavior
+
+It is the foundation for future expansion (Phase D.2+),
+but intentionally remains minimal and controlled.
+
+---

@@ -1,5 +1,6 @@
 # 05_engine/quest_runtime.py
 from __future__ import annotations
+from location_runtime import check_location_gate
 
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -111,7 +112,12 @@ class QuestRuntime:
     # ---------
     # Completion check
     # ---------
-    def check_complete(self, st: ActiveQuest, game_state: Optional[Dict[str, Any]] = None) -> Tuple[bool, List[str]]:
+    def check_complete(
+        self,
+        st: ActiveQuest,
+        game_state: Optional[Dict[str, Any]] = None,
+        runtime_context: Optional[Dict[str, Any]] = None,
+    ) -> Tuple[bool, List[str]]:
         """
         Returns: (is_complete, reasons)
         - Prefer Condition schema (complete_condition) if present.
@@ -129,9 +135,14 @@ class QuestRuntime:
         if isinstance(cond, dict):
             gs = game_state or {}
             ok, reason = self._eval_condition(cond, gs)
-            if ok:
-                return True, []
-            return False, [reason or "condition not met"]
+            if not ok:
+                return False, [reason or "condition not met"]
+
+            gate_ok, gate_reason = check_location_gate(st.quest_id, runtime_context or {})
+            if not gate_ok:
+                return False, [gate_reason or "location gate failed"]
+
+            return True, []
 
         # Legacy objectives fallback
         objectives = None
@@ -143,6 +154,9 @@ class QuestRuntime:
             objectives = quest["completion"]["objectives"]
 
         if not objectives:
+            gate_ok, gate_reason = check_location_gate(st.quest_id, runtime_context or {})
+            if not gate_ok:
+                return False, [gate_reason or "location gate failed"]
             return True, []
 
         reasons: List[str] = []
@@ -154,7 +168,14 @@ class QuestRuntime:
                 all_ok = False
                 reasons.append(f"objective[{idx}]: {reason}")
 
-        return all_ok, reasons
+        if not all_ok:
+            return False, reasons
+
+        gate_ok, gate_reason = check_location_gate(st.quest_id, runtime_context or {})
+        if not gate_ok:
+            return False, [gate_reason or "location gate failed"]
+
+        return True, []
 
     # ---------
     # Accept-condition check (NEW)

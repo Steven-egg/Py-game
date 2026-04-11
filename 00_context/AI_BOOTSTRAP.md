@@ -21,30 +21,56 @@ Structure Version: 1.2.0
 Governance Mode: Lock + Controlled Evolution  
 
 Current Phase:  
-Phase C Complete – Main Quest Chain Validated
+Phase D.1 Complete – Runtime Location Context Validated
 
 ---
 
 ## Verified Runtime Scope (Behavior Gate Confirmed)
 
-- CLI MVL loop: PASS (load → accept → progress → complete → save)
+### CLI MVL Loop
+- interactive loop enabled
+- load → list → accept → progress → check → complete → save → reload
+- where / locations / move (location control)
 
-- Condition system:
-  - flag.is_true / flag.is_false
-  - flag.int_compare (eq/gt/gte/lt/lte)
-  - logical AND (nested conditions)
-  - inventory.has
+---
 
-- Quest system:
-  - accept_condition evaluation
-  - complete_condition evaluation
-  - rewards.effects dispatch
-  - active quest guard
-  - completed_ids tracking
+### Condition System
+- flag.is_true / flag.is_false
+- flag.int_compare (eq / gt / gte / lt / lte)
+- logical AND (nested conditions)
+- inventory.has
 
-- State integrity:
-  - save.game_state = SSOT confirmed
-  - backward compatibility preserved
+---
+
+### Quest System
+- accept_condition evaluation
+- complete_condition evaluation
+- rewards.effects dispatch
+- active quest guard
+- completed_ids tracking
+
+---
+
+### Runtime Context (Phase D.1)
+- session-scoped current_location
+- valid locations:
+  - start_village
+  - forest_edge
+  - town_gate
+- CLI-driven location control
+
+---
+
+### Location Gating
+- quest completion gate (engine-side overlay)
+- wrong location blocks completion
+- correct location allows completion
+
+---
+
+### State Integrity
+- save.game_state = SSOT confirmed
+- backward compatibility preserved
 
 ---
 
@@ -61,13 +87,13 @@ Phase C Complete – Main Quest Chain Validated
 
 ---
 
-## Current Focus (Next Targets from PROJECT_STATE.json)
+## Current Focus (Phase D.2 Preparation)
 
-- Define Phase D scope (World / Location context layer)
-- Implement minimal location context at CLI level (no schema changes)
-- Introduce context-aware action gating (location-based constraints)
-- Evaluate need for future schema evolution (map / world / entity layer)
-- Decide quest repeatability semantics (one-shot vs repeatable)
+- Decide persistence policy for current_location
+- Evaluate extending location gating beyond completion flow
+- Assess need for formal world/location schema (map / entity layer)
+- Evaluate adjacency / movement constraints
+- Define Phase D.2 scope
 
 ---
 
@@ -83,8 +109,6 @@ When AI joins this project, it MUST:
 3. Treat PROJECT_STRUCTURE.md as structure SSOT
 4. Treat design_decision_log.md as evolution history
 5. Refuse any action that violates governance constraints
-
----
 
 # =========================================================
 # END OF SNAPSHOT — BELOW IS FULL GOVERNANCE CONTRACT
@@ -186,6 +210,24 @@ CLI 允許提供「摘要 + 關鍵值預覽」以提升除錯效率（例如 que
 此類輸出改動不得改變資料結構、不得引入新資料夾、不得改寫 schema 契約。
 
 Condition 評估層必須採遞迴 + leaf handler dispatch（例如 and/or/not → recurse；flag.int_compare / inventory.has → leaf handlers），不得將「底層條件」寫死為單一類型。
+
+### 6.2 Runtime Context Extension (Non-Schema)
+
+Engine may introduce session-scoped runtime context for behavior validation,
+provided that:
+
+- no schema is modified
+- no content JSON contract is changed
+- no loader behavior is changed
+- runtime context remains engine-local
+
+Examples:
+- current_location
+- CLI session context
+- engine-side action gating overlays
+
+Location-based gating may be implemented as engine-side logic
+before any formal schema evolution is approved.
 
 ## 7. AI Behavioral Rules
 

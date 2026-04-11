@@ -8,7 +8,7 @@
   "governance_mode": "Lock + Controlled Evolution",
   "structure_anchor": "DD-004",
 
-  "engine_phase": "Phase C Complete – Main Quest Chain Validated",
+  "engine_phase": "Phase D.1 Complete – Runtime Location Context Validated",
 
   "schema_layer": {
     "completed": [
@@ -56,12 +56,30 @@
     ],
 
     "cli_mvl_loop": [
+      "interactive_loop",
       "load",
+      "list",
       "accept",
       "progress",
       "check",
       "complete",
-      "save"
+      "where",
+      "locations",
+      "move",
+      "save",
+      "reload"
+    ],
+    
+    "runtime_context": [
+      "session-scoped current_location",
+      "location validation (valid locations set)",
+      "CLI-driven location control (where / move / locations)"
+    ],
+
+    "location_gating": [
+      "quest completion gate (engine-side overlay)",
+      "wrong location blocks completion",
+      "correct location allows completion"
     ]
   },
 
@@ -71,6 +89,7 @@
     "item_mvl_status": "PASS",
     "quest_mvl_status": "PASS",
     "behavior_gate_status": "PASS",
+    "location_gate_status": "PASS",
     "last_validation_date": "2026-04-11"
   },
 
@@ -99,14 +118,19 @@
     "CLI system stable: active quest guard + lobby state (DONE/ACTIVE/READY/LOCKED)",
     "No schema changes introduced during Phase C",
     "No structure changes introduced during Phase C",
-    "Regression PASS: legacy effects remain stable"
+    "Regression PASS: legacy effects remain stable",
+    "Phase D.1 completed: runtime location context + interactive CLI loop",
+    "Location-based completion gate verified (wrong location block / correct location allow)",
+    "CLI upgraded to interactive session mode",
+    "No schema changes introduced during Phase D.1",
+    "No structure changes introduced during Phase D.1"
   ],
 
   "next_targets": [
-    "Define Phase D scope (World / Location context layer)",
-    "Implement minimal location context at CLI level (no schema changes)",
-    "Introduce context-aware action gating (location-based constraints)",
-    "Evaluate need for future schema evolution (map / world / entity layer)",
-    "Decide quest repeatability semantics (one-shot vs repeatable)"
+    "Decide whether current_location should become persistent (save integration)",
+    "Evaluate extending location gating to accept / event / action flows",
+    "Assess need for formal world/location schema (map / entity layer)",
+    "Evaluate adjacency / movement constraints (graph or rule-based)",
+    "Define Phase D.2 scope"
   ]
 }

@@ -19,7 +19,7 @@ Structure Anchor: DD-004
 
 ## Current Phase
 
-Phase C Complete – Main Quest Chain Validated
+Phase D.1 Complete – Runtime Location Context Validated
 
 ---
 
@@ -81,7 +81,26 @@ Planned:
 ---
 
 ### CLI MVL Loop
-- load → accept → progress → check → complete → save
+- interactive loop enabled
+- load → list → accept → progress → check → complete → save → reload
+- where / locations / move (location control)
+
+---
+
+### Runtime Context (Phase D.1)
+- session-scoped current_location
+- valid locations:
+  - start_village
+  - forest_edge
+  - town_gate
+- CLI-driven location control
+
+---
+
+### Location Gating
+- quest completion gate (engine-side overlay)
+- wrong location blocks completion
+- correct location allows completion
 
 ---
 
@@ -95,6 +114,9 @@ Schema Gate:
 - quest: PASS
 
 Behavior Gate:
+- status: PASS
+
+Location Gate:
 - status: PASS
 
 Last Validation Date:
@@ -112,19 +134,26 @@ Last Validation Date:
 - Effect dispatch verified (gold.add / flag.set / inventory.add)
 - Save system backward compatible (completed_ids introduced)
 - CLI system stable (ACTIVE / DONE / READY / LOCKED states)
-- No schema changes introduced in Phase C
-- No structure changes introduced in Phase C
 - Regression PASS (legacy effects stable)
+
+### Phase D.1 Additions
+- Runtime location context validated
+- Interactive CLI loop validated
+- Location-gated quest completion verified
+- Wrong location blocks completion with explicit message
+- Correct location allows completion when conditions met
+- No schema changes introduced in Phase D.1
+- No structure changes introduced in Phase D.1
 
 ---
 
-## Next Targets (Phase D Preparation)
+## Next Targets (Phase D.2 Preparation)
 
-- Define Phase D scope (World / Location context layer)
-- Implement minimal location context at CLI level (NO schema changes)
-- Introduce context-aware action gating (location-based constraints)
-- Evaluate future schema evolution needs (map / world / entity layer)
-- Decide quest repeatability semantics (one-shot vs repeatable)
+- Decide persistence policy for current_location
+- Evaluate extending location gating beyond completion flow
+- Assess need for formal world/location schema
+- Evaluate adjacency / movement constraints (graph or rule-based)
+- Define Phase D.2 scope
 
 ---
 
@@ -134,8 +163,9 @@ Current state implies:
 
 - Schema Layer → STABLE (Frozen)
 - Structure → LOCKED
-- Engine → STABLE CORE COMPLETE
+- Engine → EXTENDED (Runtime Context Layer Introduced)
 - Evolution Mode → NOT ACTIVE
+- Phase D.1 implemented within governance constraints
 
 ---
 
@@ -145,7 +175,7 @@ When using this snapshot:
 
 1. Always cross-check with PROJECT_STATE.json if precision is required
 2. Do NOT infer schema evolution from this file
-3. Do NOT assume Phase D has started (only prepared)
+3. Do NOT assume Evolution Mode is active
 4. Treat this file as read-only reference for:
    - Phase understanding
    - Capability awareness

@@ -1,15 +1,46 @@
 from __future__ import annotations
 
 import argparse
+import shlex
 from typing import Any, Dict, Optional
 
 from content_loader import ContentLoader
 from effect_executor import EffectExecutor
+from location_runtime import (
+    build_runtime_context,
+    get_current_location,
+    get_location_label,
+    list_locations,
+    set_current_location,
+)
 from quest_runtime import ActiveQuest, QuestRuntime
 from save_manager import SaveBlob, SaveManager
 
 
 FATAL_KINDS = ("io", "json", "shape")
+
+
+HELP_TEXT = """
+Commands:
+  help
+  load
+  list
+  accept <quest_id>
+  progress <kind> <key> [value]
+    - kind: item | kill | flag | var
+  check
+  complete
+  show
+  questdump <quest_id>
+
+  where
+  locations
+  move <location_id>
+
+  save
+  reload
+  exit
+""".strip()
 
 
 def _print_pack_summary(pack) -> None:
@@ -24,34 +55,109 @@ def _print_pack_summary(pack) -> None:
             print(f"[{it.kind}] {it.category} :: {it.file} :: {it.message}")
 
 
+def _save_slot(
+    sm: SaveManager,
+    slot: str,
+    active: Optional[ActiveQuest],
+    game_state: Dict[str, Any],
+    completed_ids: list[str],
+) -> str:
+    blob = SaveBlob(
+        version="engine_phase_d1_mvl_1",
+        active_quest=active,
+        game_state=game_state,
+        completed_ids=completed_ids,
+    )
+    return sm.save(blob, slot)
+
+
+def _questdump(rt: QuestRuntime, quest_id: str) -> None:
+    q = rt.get_quest(quest_id)
+    print(f"quest_id: {quest_id}")
+    print("top-level keys:", sorted(list(q.keys())))
+
+    def show_path(label: str, obj: Any) -> None:
+        if isinstance(obj, dict):
+            keys = sorted(list(obj.keys()))
+            print(f"{label}: dict keys -> {keys}")
+
+            if label.endswith("complete_condition") or ("type" in obj and "params" in obj):
+                ctype = obj.get("type")
+                params = obj.get("params")
+                if ctype is not None:
+                    print(f"{label}.type: {ctype!r}")
+                if isinstance(params, dict):
+                    conds = params.get("conditions")
+                    if isinstance(conds, list):
+                        preview = []
+                        for c in conds[:3]:
+                            if isinstance(c, dict):
+                                preview.append(c.get("type"))
+                            else:
+                                preview.append(type(c).__name__)
+                        print(f"{label}.params.conditions.len: {len(conds)}")
+                        print(f"{label}.params.conditions.preview_types: {preview}")
+                    else:
+                        preview = {
+                            "flag_key": params.get("flag_key") or params.get("key"),
+                            "op": params.get("op"),
+                            "value": params.get("value"),
+                            "item_id": params.get("item_id"),
+                            "qty": params.get("qty"),
+                        }
+                        preview = {k: v for k, v in preview.items() if v is not None}
+                        if preview:
+                            print(f"{label}.params.preview: {preview}")
+                return
+
+            if label.endswith("rewards"):
+                effects = obj.get("effects")
+                if isinstance(effects, list):
+                    print(f"{label}.effects.len: {len(effects)}")
+                    if effects and isinstance(effects[0], dict):
+                        e0 = effects[0]
+                        print(f"{label}.effects[0].type: {e0.get('type')!r}")
+                        print(f"{label}.effects[0] keys: {sorted(list(e0.keys()))}")
+                return
+
+        elif isinstance(obj, list):
+            first = obj[0] if obj else None
+            print(f"{label}: list len -> {len(obj)}; first -> {type(first).__name__}")
+        else:
+            print(f"{label}: {type(obj).__name__} -> {obj!r}")
+
+    suspects = (
+        "objectives", "requirements",
+        "complete_condition",
+        "effects", "rewards",
+        "on_complete", "completion",
+        "reward", "reward_effects", "on_complete_effects",
+    )
+
+    for k in suspects:
+        if k in q:
+            show_path(k, q.get(k))
+
+    if isinstance(q.get("completion"), dict):
+        comp = q["completion"]
+        for k in suspects:
+            if k in comp:
+                show_path(f"completion.{k}", comp.get(k))
+
+    if isinstance(q.get("on_complete"), dict):
+        oc = q["on_complete"]
+        for k in suspects:
+            if k in oc:
+                show_path(f"on_complete.{k}", oc.get(k))
+
+
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Engine Phase B MVL CLI")
+    parser = argparse.ArgumentParser(description="Engine Phase D.1 Interactive MVL CLI")
     parser.add_argument("--slot", default="slot_1", help="save slot name (default: slot_1)")
-
-    sub = parser.add_subparsers(dest="cmd", required=True)
-
-    sub.add_parser("load", help="load content + show save snapshot")
-    sub.add_parser("list", help="quest lobby list (READY/LOCKED/ACTIVE/DONE)")
-
-    p_accept = sub.add_parser("accept", help="accept a quest")
-    p_accept.add_argument("quest_id")
-
-    p_progress = sub.add_parser("progress", help="report progress event")
-    p_progress.add_argument("kind", choices=["item", "kill", "flag", "var"])
-    p_progress.add_argument("key")
-    p_progress.add_argument("value", nargs="?", default="1")
-
-    sub.add_parser("check", help="check if active quest is complete")
-    sub.add_parser("complete", help="check + apply effects + save (if complete) then clear active")
-    sub.add_parser("show", help="show current save (active quest + game_state + completed_ids)")
-
-    p_qdump = sub.add_parser("questdump", help="dump quest keys & likely objective/effect fields")
-    p_qdump.add_argument("quest_id")
-
     args = parser.parse_args()
 
     # -----------------------------
-    # Load content (always)
+    # Load content once at startup
     # -----------------------------
     loader = ContentLoader()
     pack = loader.load_all(pattern="test_*.json")
@@ -60,9 +166,6 @@ def main() -> int:
     if fatal:
         _print_pack_summary(pack)
         return 2
-
-    if args.cmd == "load":
-        _print_pack_summary(pack)
 
     rt = QuestRuntime(pack.quests)
     ex = EffectExecutor()
@@ -74,307 +177,359 @@ def main() -> int:
     completed_ids = list(save.completed_ids)
 
     # -----------------------------
-    # Commands
+    # Runtime-only Phase D.1 context
     # -----------------------------
-    if args.cmd == "load":
-        print("\n=== save ===")
-        print(f"slot: {args.slot}")
-        print(f"active_quest: {active.quest_id if active else None}")
-        print(f"completed_ids.len: {len(completed_ids)}")
-        print(f"game_state keys: {sorted(game_state.keys())}")
-        return 0
+    runtime_context: Dict[str, Any] = build_runtime_context()
 
-    if args.cmd == "list":
+    print("=== Engine Phase D.1 Interactive MVL CLI ===")
+    print(f"slot: {args.slot}")
+    print(f"current_location: {get_current_location(runtime_context)} ({get_location_label(get_current_location(runtime_context))})")
+    print("Type 'help' for commands.")
+
+    while True:
+        try:
+            raw = input("> ").strip()
+        except (EOFError, KeyboardInterrupt):
+            print("\nBye.")
+            return 0
+
+        if not raw:
+            continue
+
+        try:
+            parts = shlex.split(raw)
+        except ValueError as exc:
+            print(f"Parse error: {exc}")
+            continue
+
+        cmd = parts[0].lower()
+        rest = parts[1:]
+
+        # -----------------------------
+        # Help / Exit
+        # -----------------------------
+        if cmd in ("help", "?"):
+            print(HELP_TEXT)
+            continue
+
+        if cmd in ("exit", "quit"):
+            print("Bye.")
+            return 0
+
+        # -----------------------------
+        # Location commands
+        # -----------------------------
+        if cmd == "where":
+            current = get_current_location(runtime_context)
+            print(f"current_location: {current} ({get_location_label(current)})")
+            continue
+
+        if cmd == "locations":
+            print("Available locations:")
+            for loc in list_locations():
+                print(f"- {loc} ({get_location_label(loc)})")
+            continue
+
+        if cmd == "move":
+            if len(rest) != 1:
+                print("Usage: move <location_id>")
+                continue
+            ok, message = set_current_location(runtime_context, rest[0])
+            print(message)
+            continue
+
+        # -----------------------------
+        # Content / save inspection
+        # -----------------------------
+        if cmd == "load":
+            _print_pack_summary(pack)
+            print("\n=== save ===")
+            print(f"slot: {args.slot}")
+            print(f"active_quest: {active.quest_id if active else None}")
+            print(f"completed_ids.len: {len(completed_ids)}")
+            print(f"game_state keys: {sorted(game_state.keys())}")
+            print(f"current_location: {get_current_location(runtime_context)} ({get_location_label(get_current_location(runtime_context))})")
+            continue
+
+        if cmd == "show":
+            print(f"slot: {args.slot}")
+            print(f"active_quest: {active.to_dict() if active else None}")
+            print(f"completed_ids: {completed_ids}")
+            print(f"game_state: {game_state}")
+            print(f"runtime_context: {runtime_context}")
+            continue
+
+        if cmd == "save":
+            fp = _save_slot(sm, args.slot, active, game_state, completed_ids)
+            print(f"Saved: {fp}")
+            continue
+
+        if cmd == "reload":
+            save = sm.load(args.slot)
+            active = save.active_quest
+            game_state = save.game_state
+            completed_ids = list(save.completed_ids)
+            runtime_context = build_runtime_context()
+            print(f"Reloaded slot: {args.slot}")
+            print("Runtime location reset to session default.")
+            print(f"current_location: {get_current_location(runtime_context)} ({get_location_label(get_current_location(runtime_context))})")
+            continue
+
+        # -----------------------------
         # Quest Lobby
-        # Status priority: DONE > ACTIVE > READY/LOCKED
-        active_id = active.quest_id if (active is not None and active.completed_at is None) else None
+        # -----------------------------
+        if cmd == "list":
+            active_id = active.quest_id if (active is not None and active.completed_at is None) else None
 
-        for qid in rt.list_quest_ids():
-            if qid in completed_ids:
-                print(f"[DONE]   {qid}")
-                continue
+            for qid in rt.list_quest_ids():
+                if qid in completed_ids:
+                    print(f"[DONE]   {qid}")
+                    continue
 
-            if active_id == qid:
-                print(f"[ACTIVE] {qid}")
-                continue
+                if active_id == qid:
+                    print(f"[ACTIVE] {qid}")
+                    continue
 
-            ok, reason = rt.check_acceptable(qid, game_state)
-            if ok:
-                print(f"[READY]  {qid}")
-            else:
-                # show short reason (already human-readable)
-                print(f"[LOCKED] {qid} :: {reason}")
-        return 0
-
-    if args.cmd == "questdump":
-        q = rt.get_quest(args.quest_id)
-        print(f"quest_id: {args.quest_id}")
-        print("top-level keys:", sorted(list(q.keys())))
-
-        def show_path(label: str, obj: Any) -> None:
-            if isinstance(obj, dict):
-                keys = sorted(list(obj.keys()))
-                print(f"{label}: dict keys -> {keys}")
-
-                if label.endswith("complete_condition") or ("type" in obj and "params" in obj):
-                    ctype = obj.get("type")
-                    params = obj.get("params")
-                    if ctype is not None:
-                        print(f"{label}.type: {ctype!r}")
-                    if isinstance(params, dict):
-                        conds = params.get("conditions")
-                        if isinstance(conds, list):
-                            preview = []
-                            for c in conds[:3]:
-                                if isinstance(c, dict):
-                                    preview.append(c.get("type"))
-                                else:
-                                    preview.append(type(c).__name__)
-                            print(f"{label}.params.conditions.len: {len(conds)}")
-                            print(f"{label}.params.conditions.preview_types: {preview}")
-                        else:
-                            preview = {
-                                "flag_key": params.get("flag_key") or params.get("key"),
-                                "op": params.get("op"),
-                                "value": params.get("value"),
-                                "item_id": params.get("item_id"),
-                                "qty": params.get("qty"),
-                            }
-                            preview = {k: v for k, v in preview.items() if v is not None}
-                            if preview:
-                                print(f"{label}.params.preview: {preview}")
-                    return
-
-                if label.endswith("rewards"):
-                    effects = obj.get("effects")
-                    if isinstance(effects, list):
-                        print(f"{label}.effects.len: {len(effects)}")
-                        if effects and isinstance(effects[0], dict):
-                            e0 = effects[0]
-                            print(f"{label}.effects[0].type: {e0.get('type')!r}")
-                            print(f"{label}.effects[0] keys: {sorted(list(e0.keys()))}")
-                    return
-
-            elif isinstance(obj, list):
-                first = obj[0] if obj else None
-                print(f"{label}: list len -> {len(obj)}; first -> {type(first).__name__}")
-            else:
-                print(f"{label}: {type(obj).__name__} -> {obj!r}")
-
-        suspects = (
-            "objectives", "requirements",
-            "complete_condition",
-            "effects", "rewards",
-            "on_complete", "completion",
-            "reward", "reward_effects", "on_complete_effects",
-        )
-
-        for k in suspects:
-            if k in q:
-                show_path(k, q.get(k))
-
-        if isinstance(q.get("completion"), dict):
-            comp = q["completion"]
-            for k in suspects:
-                if k in comp:
-                    show_path(f"completion.{k}", comp.get(k))
-
-        if isinstance(q.get("on_complete"), dict):
-            oc = q["on_complete"]
-            for k in suspects:
-                if k in oc:
-                    show_path(f"on_complete.{k}", oc.get(k))
-
-        return 0
-
-    if args.cmd == "accept":
-        # Guard: do not allow accepting a new quest while another is active (and not completed)
-        if active is not None and active.completed_at is None:
-            print("Cannot accept quest: another quest is already active")
-            print(f"- active_quest: {active.quest_id} (not completed)")
-            print("Tip: complete it first, or use --slot slot_2")
-            return 1
-
-        # Optional: prevent re-accepting completed quest (one-shot semantics)
-        if args.quest_id in completed_ids:
-            print(f"Cannot accept quest: {args.quest_id}")
-            print("- already completed (completed_ids)")
-            return 1
-
-        # Enforce accept_condition if present
-        ok, reason = rt.check_acceptable(args.quest_id, game_state)
-        if not ok:
-            print(f"Cannot accept quest: {args.quest_id}")
-            print(f"- {reason}")
-            return 1
-
-        active = rt.accept(args.quest_id)
-        blob = SaveBlob(
-            version="engine_phase_b_mvl_1",
-            active_quest=active,
-            game_state=game_state,
-            completed_ids=completed_ids,
-        )
-        fp = sm.save(blob, args.slot)
-        print(f"Accepted quest: {active.quest_id}")
-        print(f"Saved: {fp}")
-        return 0
-
-    if args.cmd == "progress":
-        kind = args.kind
-        key = args.key
-
-        # Allow world-state injection for hall testing when no active quest
-        # - item/kill require active quest (quest progress semantics)
-        # - flag/var can write to save.game_state without active quest (SSOT semantics)
-        if not active and kind in ("item", "kill"):
-            print("No active quest. Use: accept <quest_id>")
-            return 1
-
-        kind = args.kind
-        key = args.key
-
-        if kind == "item":
-            try:
-                n = int(args.value)
-            except Exception:
-                n = 1
-            rt.report_item_gained(active, key, n)
-            inv = game_state.setdefault("inventory", {})
-            if not isinstance(inv, dict):
-                game_state["inventory"] = {}
-                inv = game_state["inventory"]
-            inv[key] = int(inv.get(key, 0)) + int(n)
-            print(f"progress: item {key} +{n}")
-
-        elif kind == "kill":
-            try:
-                n = int(args.value)
-            except Exception:
-                n = 1
-            rt.report_monster_killed(active, key, n)
-
-            flags = game_state.setdefault("flags", {})
-            if not isinstance(flags, dict):
-                game_state["flags"] = {}
-                flags = game_state["flags"]
-
-            kill_flag = f"flg.kill.{key}.count"
-            try:
-                cur = int(flags.get(kill_flag, 0))
-            except Exception:
-                cur = 0
-            flags[kill_flag] = cur + int(n)
-
-            print(f"progress: kill {key} +{n}")
-
-        elif kind == "flag":
-            vraw = args.value
-            v: Any = True
-            if isinstance(vraw, str):
-                s = vraw.strip().lower()
-                if s in ("true", "1", "yes", "y", "on"):
-                    v = True
-                elif s in ("false", "0", "no", "n", "off"):
-                    v = False
+                ok, reason = rt.check_acceptable(qid, game_state)
+                if ok:
+                    print(f"[READY]  {qid}")
                 else:
-                    v = vraw
-            if active:
-                rt.report_flag_set(active, key, v)
-            flags = game_state.setdefault("flags", {})
-            if not isinstance(flags, dict):
-                game_state["flags"] = {}
-                flags = game_state["flags"]
-            flags[key] = v
-            print(f"progress: flag {key}={v!r}")
+                    print(f"[LOCKED] {qid} :: {reason}")
+            continue
 
-        elif kind == "var":
-            vraw = args.value
-            v: Any = vraw
-            if isinstance(vraw, str):
+        if cmd == "questdump":
+            if len(rest) != 1:
+                print("Usage: questdump <quest_id>")
+                continue
+            try:
+                _questdump(rt, rest[0])
+            except Exception as exc:
+                print(f"questdump failed: {exc}")
+            continue
+
+        # -----------------------------
+        # Quest accept
+        # -----------------------------
+        if cmd == "accept":
+            if len(rest) != 1:
+                print("Usage: accept <quest_id>")
+                continue
+
+            quest_id = rest[0]
+
+            if active is not None and active.completed_at is None:
+                print("Cannot accept quest: another quest is already active")
+                print(f"- active_quest: {active.quest_id} (not completed)")
+                print("Tip: complete it first, or use another save slot")
+                continue
+
+            if quest_id in completed_ids:
+                print(f"Cannot accept quest: {quest_id}")
+                print("- already completed (completed_ids)")
+                continue
+
+            try:
+                ok, reason = rt.check_acceptable(quest_id, game_state)
+            except Exception as exc:
+                print(f"Cannot accept quest: {exc}")
+                continue
+
+            if not ok:
+                print(f"Cannot accept quest: {quest_id}")
+                print(f"- {reason}")
+                continue
+
+            try:
+                active = rt.accept(quest_id)
+            except Exception as exc:
+                print(f"Accept failed: {exc}")
+                continue
+
+            fp = _save_slot(sm, args.slot, active, game_state, completed_ids)
+            print(f"Accepted quest: {active.quest_id}")
+            print(f"Saved: {fp}")
+            continue
+
+        # -----------------------------
+        # Progress
+        # -----------------------------
+        if cmd == "progress":
+            if len(rest) < 2:
+                print("Usage: progress <kind> <key> [value]")
+                print("Kinds: item | kill | flag | var")
+                continue
+
+            kind = rest[0]
+            key = rest[1]
+            value = rest[2] if len(rest) >= 3 else "1"
+
+            if not active and kind in ("item", "kill"):
+                print("No active quest. Use: accept <quest_id>")
+                continue
+
+            if kind == "item":
                 try:
-                    v = int(vraw)
+                    n = int(value)
                 except Exception:
-                    try:
-                        v = float(vraw)
-                    except Exception:
+                    n = 1
+
+                assert active is not None
+                rt.report_item_gained(active, key, n)
+
+                inv = game_state.setdefault("inventory", {})
+                if not isinstance(inv, dict):
+                    game_state["inventory"] = {}
+                    inv = game_state["inventory"]
+                inv[key] = int(inv.get(key, 0)) + int(n)
+                print(f"progress: item {key} +{n}")
+
+            elif kind == "kill":
+                try:
+                    n = int(value)
+                except Exception:
+                    n = 1
+
+                assert active is not None
+                rt.report_monster_killed(active, key, n)
+
+                flags = game_state.setdefault("flags", {})
+                if not isinstance(flags, dict):
+                    game_state["flags"] = {}
+                    flags = game_state["flags"]
+
+                kill_flag = f"flg.kill.{key}.count"
+                try:
+                    cur = int(flags.get(kill_flag, 0))
+                except Exception:
+                    cur = 0
+                flags[kill_flag] = cur + int(n)
+
+                print(f"progress: kill {key} +{n}")
+
+            elif kind == "flag":
+                vraw = value
+                v: Any = True
+                if isinstance(vraw, str):
+                    s = vraw.strip().lower()
+                    if s in ("true", "1", "yes", "y", "on"):
+                        v = True
+                    elif s in ("false", "0", "no", "n", "off"):
+                        v = False
+                    else:
                         v = vraw
-            if active:
-                rt.report_var_set(active, key, v)
-            vars_ = game_state.setdefault("vars", {})
-            if not isinstance(vars_, dict):
-                game_state["vars"] = {}
-                vars_ = game_state["vars"]
-            vars_[key] = v
-            print(f"progress: var {key}={v!r}")
 
-        blob = SaveBlob(
-            version="engine_phase_b_mvl_1",
-            active_quest=active,
-            game_state=game_state,
-            completed_ids=completed_ids,
-        )
-        fp = sm.save(blob, args.slot)
-        print(f"Saved: {fp}")
-        return 0
+                if active:
+                    rt.report_flag_set(active, key, v)
 
-    if args.cmd == "check":
-        if not active:
-            print("No active quest.")
-            return 1
-        ok, reasons = rt.check_complete(active, game_state)
-        print(f"active_quest: {active.quest_id}")
-        print(f"complete: {ok}")
-        if not ok:
-            for r in reasons:
-                print(f"- {r}")
-        return 0
+                flags = game_state.setdefault("flags", {})
+                if not isinstance(flags, dict):
+                    game_state["flags"] = {}
+                    flags = game_state["flags"]
+                flags[key] = v
+                print(f"progress: flag {key}={v!r}")
 
-    if args.cmd == "complete":
-        if not active:
-            print("No active quest.")
-            return 1
+            elif kind == "var":
+                vraw = value
+                v: Any = vraw
+                if isinstance(vraw, str):
+                    try:
+                        v = int(vraw)
+                    except Exception:
+                        try:
+                            v = float(vraw)
+                        except Exception:
+                            v = vraw
 
-        ok, reasons = rt.check_complete(active, game_state)
-        if not ok:
-            print("Quest not complete.")
-            for r in reasons:
-                print(f"- {r}")
-            return 1
+                if active:
+                    rt.report_var_set(active, key, v)
 
-        quest = rt.get_quest(active.quest_id)
-        logs = ex.apply_quest_complete_effects(quest, game_state)
-        rt.mark_completed(active)
+                vars_ = game_state.setdefault("vars", {})
+                if not isinstance(vars_, dict):
+                    game_state["vars"] = {}
+                    vars_ = game_state["vars"]
+                vars_[key] = v
+                print(f"progress: var {key}={v!r}")
 
-        # A) record completion + clear active quest slot
-        qid = active.quest_id
-        if qid and qid not in completed_ids:
-            completed_ids.append(qid)
-        active = None
+            else:
+                print(f"Unsupported progress kind: {kind}")
+                continue
 
-        blob = SaveBlob(
-            version="engine_phase_b_mvl_1",
-            active_quest=active,
-            game_state=game_state,
-            completed_ids=completed_ids,
-        )
-        fp = sm.save(blob, args.slot)
+            fp = _save_slot(sm, args.slot, active, game_state, completed_ids)
+            print(f"Saved: {fp}")
+            continue
 
-        print("Quest COMPLETE. Effects applied:")
-        for lg in logs:
-            print(f"[{lg.kind}] {lg.message}")
-        print(f"Saved: {fp}")
-        return 0
+        # -----------------------------
+        # Completion check
+        # -----------------------------
+        if cmd == "check":
+            if not active:
+                print("No active quest.")
+                continue
 
-    if args.cmd == "show":
-        print(f"slot: {args.slot}")
-        print(f"version: {save.version}")
-        print(f"active_quest: {active.to_dict() if active else None}")
-        print(f"completed_ids: {completed_ids}")
-        print(f"game_state: {game_state}")
-        return 0
+            try:
+                ok, reasons = rt.check_complete(active, game_state, runtime_context)
+            except TypeError:
+                print("QuestRuntime.check_complete() does not accept runtime_context yet.")
+                print("Please confirm quest_runtime.py has been updated for Phase D.1.")
+                continue
+            except Exception as exc:
+                print(f"Check failed: {exc}")
+                continue
 
-    return 0
+            print(f"active_quest: {active.quest_id}")
+            print(f"complete: {ok}")
+            if not ok:
+                for r in reasons:
+                    print(f"- {r}")
+            continue
+
+        # -----------------------------
+        # Complete quest
+        # -----------------------------
+        if cmd == "complete":
+            if not active:
+                print("No active quest.")
+                continue
+
+            try:
+                ok, reasons = rt.check_complete(active, game_state, runtime_context)
+            except TypeError:
+                print("QuestRuntime.check_complete() does not accept runtime_context yet.")
+                print("Please confirm quest_runtime.py has been updated for Phase D.1.")
+                continue
+            except Exception as exc:
+                print(f"Complete check failed: {exc}")
+                continue
+
+            if not ok:
+                print("Quest not complete.")
+                for r in reasons:
+                    print(f"- {r}")
+                continue
+
+            try:
+                quest = rt.get_quest(active.quest_id)
+                logs = ex.apply_quest_complete_effects(quest, game_state)
+                rt.mark_completed(active)
+            except Exception as exc:
+                print(f"Completion failed: {exc}")
+                continue
+
+            qid = active.quest_id
+            if qid and qid not in completed_ids:
+                completed_ids.append(qid)
+            active = None
+
+            fp = _save_slot(sm, args.slot, active, game_state, completed_ids)
+
+            print("Quest COMPLETE. Effects applied:")
+            for lg in logs:
+                print(f"[{lg.kind}] {lg.message}")
+            print(f"Saved: {fp}")
+            continue
+
+        print(f"Unknown command: {cmd}")
+        print("Type 'help' for commands.")
 
 
 if __name__ == "__main__":

@@ -534,3 +534,53 @@ design_decision_log.md ← Evolution history
 - 不啟動 Evolution Mode（本決策屬治理優化）
 
 ---
+
+## DD-018
+Date: 2026-04-11
+Title: Phase D.1 Runtime Location Context 與 Interactive CLI Loop 導入
+
+Impact: Mid
+Scope: 05_engine/cli_mvl.py、05_engine/quest_runtime.py、05_engine/location_runtime.py
+
+Reason:
+Phase D 的目標是先驗證 World / Location context layer 的最小可行形態，
+且必須在不修改 Schema、不修改 Loader、不變更專案結構的前提下完成。
+
+原本 CLI 採單次 subcommand 模式，
+無法在同一個 session 內持續保留 runtime-only location state，
+因此無法自然驗證：
+- wrong location -> block
+- correct location -> allow
+
+同時，Quest 完成條件雖已由 Condition evaluator 驗證，
+但尚未具備 context-aware action gating 能力。
+
+Decision:
+- 導入 interactive CLI loop，取代原本單次命令式操作
+- 新增 runtime-only location context（session-scoped）
+- 新增 location_runtime.py，提供：
+  - valid locations scaffold
+  - current_location runtime context
+  - engine-side quest completion gate
+- CLI 新增指令：
+  - where
+  - locations
+  - move <location_id>
+- QuestRuntime.check_complete(...) 擴充 runtime_context 參數
+- 在 complete_condition / legacy objectives 通過後，統一接入 check_location_gate(...)
+- location gate 採 engine-side overlay rule，不進 schema、不進 content JSON
+
+Validation:
+已驗證以下行為：
+1. 完成條件未滿足時，仍由既有 condition system 優先阻擋
+2. 完成條件滿足但位置錯誤時，completion 被 location gate 阻擋
+3. 完成條件滿足且位置正確時，任務可正常完成並套用 effects
+4. Save / completed_ids / reward dispatch 流程維持穩定
+5. 未引入 schema change / loader change / structure change
+
+Result:
+- Phase D.1 完成
+- Engine 開始具備最小世界位置語境（location-aware runtime）
+- 為後續 D.2（location persistence / action gate expansion / world layer evaluation）建立基礎
+
+---
