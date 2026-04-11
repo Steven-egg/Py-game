@@ -1,5 +1,6 @@
 {
   "project_name": "Text RPG Engine",
+
   "engine_version": "1.0.0",
   "spec_version": "1.2.0",
   "structure_version": "1.2.0",
@@ -7,7 +8,7 @@
   "governance_mode": "Lock + Controlled Evolution",
   "structure_anchor": "DD-004",
 
-  "engine_phase": "Phase C – Effect Dispatcher Expansion Complete",
+  "engine_phase": "Phase C Complete – Main Quest Chain Validated",
 
   "schema_layer": {
     "completed": [
@@ -28,6 +29,7 @@
 
   "engine_layer_capabilities": {
     "state_ssot": "save.game_state = { flags, inventory, vars }",
+
     "effect_dispatcher": [
       "gold.add",
       "flag.set",
@@ -35,6 +37,31 @@
       "inventory.remove",
       "flag.int_add",
       "var.add"
+    ],
+
+    "condition_support": [
+      "flag.is_true",
+      "flag.is_false",
+      "flag.int_compare (eq/gt/gte/lt/lte)",
+      "and (nested conditions)",
+      "inventory.has"
+    ],
+
+    "quest_runtime": [
+      "accept_condition evaluation",
+      "complete_condition evaluation",
+      "rewards.effects dispatch",
+      "active quest guard",
+      "completed_ids tracking"
+    ],
+
+    "cli_mvl_loop": [
+      "load",
+      "accept",
+      "progress",
+      "check",
+      "complete",
+      "save"
     ]
   },
 
@@ -43,7 +70,8 @@
     "monster_mvl_status": "PASS",
     "item_mvl_status": "PASS",
     "quest_mvl_status": "PASS",
-    "last_validation_date": "2026-03-01"
+    "behavior_gate_status": "PASS",
+    "last_validation_date": "2026-04-11"
   },
 
   "validation_tools": {
@@ -61,36 +89,24 @@
   },
 
   "notes": [
-    "Monster vertical slice fully validated",
-    "Item vertical slice fully validated",
-    "Quest vertical slice fully validated (MVL v2 PASS)",
-    "Effect/Event schema filenames aligned with SSOT semantics",
-    "MVL auto-scan test_*.json enabled",
-    "Schema Gate and Behavior Gate confirmed stable",
-
-    "Engine Phase B MVL implemented: content_loader / quest_runtime / effect_executor / save_manager / cli_mvl",
-    "Engine loader treats missing $schema in fixtures as warning (non-fatal) for CLI MVL loop",
-    "CLI MVL loop verified: load → accept → progress → check → complete → save",
-    "CLI questdump enhanced to show semantic previews (complete_condition + rewards.effects shape)",
-
-    "Behavior Gate verified (smoke tests): q.side.slime_hunt = flag.int_compare(gte) on flg.kill.slime.count; q.elite.trial_of_balance = and([flag.int_compare, inventory.has])",
-    "Accept Gate implemented: accept_condition evaluated via Condition evaluator (flag.is_true / flag.is_false)",
-    "State SSOT verified: condition evaluation reads flags/inventory from save.game_state (single source of truth)",
-    "Effect dispatch verified on quest completion: rewards.effects supports gold.add + flag.set (MVP)",
-    "Save evolution (backward compatible): SaveBlob includes completed_ids (list[str])",
-    "CLI safety: active quest guard prevents accepting new quest if active_quest not completed",
-    "CLI behavior: complete clears active_quest and records quest_id into completed_ids",
-    "CLI lobby list: list prints [DONE]/[ACTIVE]/[READY]/[LOCKED] with LOCKED reason",
-
-    "Phase C completed (Engine layer only): expanded effect dispatcher inventory.add / inventory.remove / flag.int_add / var.add",
-    "Phase C regression PASS: legacy effects (gold.add / flag.set) remain stable; save compatibility preserved; no schema/structure changes; no version bump"
-    "Schema gate: fixtures now include $schema pointing to 02_specs/schema/*; cli_mvl load issues=0 (PASS)."
+    "Phase C fully completed: Effect Dispatcher expansion + Quest runtime validation",
+    "Main quest chain (002 → 005) validated successfully via CLI MVL loop",
+    "Condition system verified: flag.is_true / flag.int_compare / and / inventory.has",
+    "Behavior Gate confirmed stable across quest acceptance and completion flow",
+    "State SSOT integrity verified: all condition evaluation reads from save.game_state",
+    "Effect dispatch verified on completion: gold.add + flag.set + inventory.add",
+    "Save system stable: completed_ids added (backward compatible)",
+    "CLI system stable: active quest guard + lobby state (DONE/ACTIVE/READY/LOCKED)",
+    "No schema changes introduced during Phase C",
+    "No structure changes introduced during Phase C",
+    "Regression PASS: legacy effects remain stable"
   ],
 
   "next_targets": [
-    "Decide canonical semantics for one-shot vs repeatable quests (completed_ids vs allow re-accept)",
-    "Option: add quest completion history object (completed_at per id) if needed (non-breaking evolution)",
-    "Option: list command enhance to show short 'needs:<flag>' formatting (QoL)",
-    "Phase C: add quest-type condition leaf (quest.is_completed) if quest-gating needs it (DD + schema update)"
+    "Define Phase D scope (World / Location context layer)",
+    "Implement minimal location context at CLI level (no schema changes)",
+    "Introduce context-aware action gating (location-based constraints)",
+    "Evaluate need for future schema evolution (map / world / entity layer)",
+    "Decide quest repeatability semantics (one-shot vs repeatable)"
   ]
 }

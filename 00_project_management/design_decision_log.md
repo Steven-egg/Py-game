@@ -397,3 +397,140 @@ Decision:
 Result:
 Phase C 完成。
 Regression 驗證通過。
+
+---
+
+## DD-017
+Date: 2026-04-11  
+Title: AI Snapshot Mirror & Structure Readability Layer Introduction  
+
+Impact: High  
+Scope: AI Governance / Context Layer / Structure Readability / Drift Prevention  
+
+---
+
+### Reason
+
+在 Phase C 完成後，專案進入 Phase D 準備階段。
+
+過程中發現以下問題：
+
+1. AI 工具（如 ChatGPT / NotebookLM）無法穩定解析：
+   - `PROJECT_STATE.json`
+   - `tree /f` 原始結構輸出
+
+2. 多對話環境中，AI 容易產生：
+   - State 解讀不一致
+   - Structure 誤判
+   - Architecture Drift（架構漂移）
+
+3. 原有治理機制雖完整（AI_BOOTSTRAP / PROJECT_STATE / DD），
+   但缺乏「AI 可穩定讀取的中介層（Readable Layer）」。
+
+---
+
+### Decision
+
+正式引入「AI 可讀治理層（AI-Readable Governance Layer）」：
+
+#### 1. PROJECT_STATE_SNAPSHOT.md（狀態鏡像）
+
+- 作為 `PROJECT_STATE.json` 的 HUMAN / AI 可讀鏡像
+- 僅用於閱讀與推理，不具 SSOT 地位
+- 明確規定：
+  - JSON 為唯一狀態來源
+  - Snapshot 不可反向修改 JSON
+
+---
+
+#### 2. AI_BOOTSTRAP.md Snapshot 區段強化
+
+- 在文件最前方加入：
+  - Current Snapshot
+  - Verified Runtime Scope
+  - Structural Constraints
+- 明確標示：
+  - Snapshot 為 mirror
+  - PROJECT_STATE.json 為唯一 authority
+
+---
+
+#### 3. PROJECT_STRUCTURE.md（AI 可讀強化）
+
+- 明確定義為 Structure SSOT
+- 新增：
+  - Human + AI readable structure overview
+  - Layer responsibility definition
+  - AI reading protocol（禁止依賴 tree /f）
+- 作為所有 AI 判斷結構的唯一依據
+
+---
+
+#### 4. Structure Reading Protocol 建立
+
+AI 在分析專案結構時：
+
+1. 必須優先讀取 `PROJECT_STRUCTURE.md`
+2. 禁止依賴：
+   - tree /f
+   - raw filesystem dump
+3. 發生衝突時：
+   - 以 PROJECT_STRUCTURE.md 為準
+
+---
+
+#### 5. Governance Layer 明確化（00_context）
+
+正式確認 `00_context` 為：
+
+- AI 協作控制層
+- 狀態錨點層
+- Drift 防護層
+
+包含：
+
+- AI_BOOTSTRAP.md
+- PROJECT_STATE.json
+- PROJECT_STATE_SNAPSHOT.md
+
+---
+
+### Result
+
+建立完整三層治理結構：
+
+PROJECT_STATE.json ← State SSOT
+↓
+PROJECT_STATE_SNAPSHOT.md ← AI-readable mirror
+↓
+AI_BOOTSTRAP.md ← Governance entry
+
+
+並與：
+
+PROJECT_STRUCTURE.md ← Structure SSOT
+design_decision_log.md ← Evolution history
+
+
+形成完整治理閉環（Governance Loop）。
+
+---
+
+### Impact
+
+- 消除 AI 無法解析 JSON / tree 結構問題
+- 顯著降低 Architecture Drift 風險
+- 建立 deterministic AI 協作行為
+- 強化多對話一致性
+- 不引入新的 SSOT（避免分裂）
+
+---
+
+### Constraints
+
+- Snapshot 不得取代 JSON
+- 不得新增獨立治理檔（如 AI_COLLAB_PROTOCOL.md）
+- 所有結構變更仍需 DD 流程
+- 不啟動 Evolution Mode（本決策屬治理優化）
+
+---

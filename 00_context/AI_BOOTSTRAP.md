@@ -1,3 +1,95 @@
+# =========================================================
+# 🔒 CURRENT PROJECT SNAPSHOT (AI MUST READ FIRST)
+# =========================================================
+
+Source of Truth:
+- Version & State → PROJECT_STATE.json
+- Structure → PROJECT_STRUCTURE.md
+- Decisions → design_decision_log.md
+
+⚠️ This snapshot is a HUMAN-READABLE MIRROR only.
+⚠️ If any conflict occurs, PROJECT_STATE.json ALWAYS takes precedence.
+
+---
+
+## Current State (Derived from PROJECT_STATE.json)
+
+Engine Version: 1.0.0  
+Spec Version: 1.2.0  
+Structure Version: 1.2.0  
+
+Governance Mode: Lock + Controlled Evolution  
+
+Current Phase:  
+Phase C Complete – Main Quest Chain Validated
+
+---
+
+## Verified Runtime Scope (Behavior Gate Confirmed)
+
+- CLI MVL loop: PASS (load → accept → progress → complete → save)
+
+- Condition system:
+  - flag.is_true / flag.is_false
+  - flag.int_compare (eq/gt/gte/lt/lte)
+  - logical AND (nested conditions)
+  - inventory.has
+
+- Quest system:
+  - accept_condition evaluation
+  - complete_condition evaluation
+  - rewards.effects dispatch
+  - active quest guard
+  - completed_ids tracking
+
+- State integrity:
+  - save.game_state = SSOT confirmed
+  - backward compatibility preserved
+
+---
+
+## Structural Constraints (HARD RULES)
+
+- ❌ No schema changes
+- ❌ No structure changes
+- ❌ No loader modification
+- ❌ No new top-level governance files
+- ❌ No registry mutation outside append-only
+
+- ✅ All changes must remain within existing structure
+- ✅ All structural evolution must go through DD + Evolution Mode
+
+---
+
+## Current Focus (Next Targets from PROJECT_STATE.json)
+
+- Define Phase D scope (World / Location context layer)
+- Implement minimal location context at CLI level (no schema changes)
+- Introduce context-aware action gating (location-based constraints)
+- Evaluate need for future schema evolution (map / world / entity layer)
+- Decide quest repeatability semantics (one-shot vs repeatable)
+
+---
+
+## AI Collaboration Rules (Quick Mode)
+
+When AI joins this project, it MUST:
+
+1. Read this snapshot first
+2. Treat PROJECT_STATE.json as:
+   - Version authority
+   - Phase authority
+   - Capability authority
+3. Treat PROJECT_STRUCTURE.md as structure SSOT
+4. Treat design_decision_log.md as evolution history
+5. Refuse any action that violates governance constraints
+
+---
+
+# =========================================================
+# END OF SNAPSHOT — BELOW IS FULL GOVERNANCE CONTRACT
+# =========================================================
+
 # AI_BOOTSTRAP.md
 
 Project_RPG – AI Collaboration Initialization Protocol
