@@ -18,6 +18,7 @@ from save_manager import SaveBlob, SaveManager
 
 
 FATAL_KINDS = ("io", "json", "shape")
+DEFAULT_LOCATION = "start_village"
 
 
 HELP_TEXT = """
@@ -63,7 +64,9 @@ def _save_slot(
     completed_ids: list[str],
 ) -> str:
     blob = SaveBlob(
-        version="engine_phase_d1_mvl_1",
+        save_schema="save@1.0",
+        engine_version="1.0.0",
+        content_manifest_hash="dev_local",
         active_quest=active,
         game_state=game_state,
         completed_ids=completed_ids,
@@ -151,8 +154,36 @@ def _questdump(rt: QuestRuntime, quest_id: str) -> None:
                 show_path(f"on_complete.{k}", oc.get(k))
 
 
+def _ensure_game_state_current_location(game_state: Dict[str, Any]) -> str:
+    raw = game_state.get("current_location")
+
+    if not isinstance(raw, str) or not raw.strip():
+        game_state["current_location"] = DEFAULT_LOCATION
+        return DEFAULT_LOCATION
+
+    return raw.strip()
+
+
+def _build_runtime_context_from_game_state(game_state: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Phase D.2 rule:
+    - game_state['current_location'] is the persistent SSOT
+    - runtime_context mirrors the persisted value for session use
+    """
+    runtime_context = build_runtime_context()
+
+    location_id = _ensure_game_state_current_location(game_state)
+    ok, _ = set_current_location(runtime_context, location_id)
+
+    if not ok:
+        game_state["current_location"] = DEFAULT_LOCATION
+        set_current_location(runtime_context, DEFAULT_LOCATION)
+
+    return runtime_context
+
+
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Engine Phase D.1 Interactive MVL CLI")
+    parser = argparse.ArgumentParser(description="Engine Phase D.2 Interactive MVL CLI")
     parser.add_argument("--slot", default="slot_1", help="save slot name (default: slot_1)")
     args = parser.parse_args()
 
@@ -177,11 +208,12 @@ def main() -> int:
     completed_ids = list(save.completed_ids)
 
     # -----------------------------
-    # Runtime-only Phase D.1 context
+    # Phase D.2 persistent location sync
+    # game_state is SSOT; runtime_context mirrors it
     # -----------------------------
-    runtime_context: Dict[str, Any] = build_runtime_context()
+    runtime_context: Dict[str, Any] = _build_runtime_context_from_game_state(game_state)
 
-    print("=== Engine Phase D.1 Interactive MVL CLI ===")
+    print("=== Engine Phase D.2 Interactive MVL CLI ===")
     print(f"slot: {args.slot}")
     print(f"current_location: {get_current_location(runtime_context)} ({get_location_label(get_current_location(runtime_context))})")
     print("Type 'help' for commands.")
@@ -234,7 +266,13 @@ def main() -> int:
             if len(rest) != 1:
                 print("Usage: move <location_id>")
                 continue
-            ok, message = set_current_location(runtime_context, rest[0])
+
+            target_location = rest[0]
+            ok, message = set_current_location(runtime_context, target_location)
+
+            if ok:
+                game_state["current_location"] = get_current_location(runtime_context)
+
             print(message)
             continue
 
@@ -269,9 +307,10 @@ def main() -> int:
             active = save.active_quest
             game_state = save.game_state
             completed_ids = list(save.completed_ids)
-            runtime_context = build_runtime_context()
+            runtime_context = _build_runtime_context_from_game_state(game_state)
+
             print(f"Reloaded slot: {args.slot}")
-            print("Runtime location reset to session default.")
+            print("Runtime location restored from save.game_state.")
             print(f"current_location: {get_current_location(runtime_context)} ({get_location_label(get_current_location(runtime_context))})")
             continue
 

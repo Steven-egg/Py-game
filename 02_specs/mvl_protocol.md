@@ -1,11 +1,11 @@
 # MVL Protocol v1.0
 
-Engine: 1.0.0\
-Spec: 1.2.0\
+Engine: 1.0.0  
+Spec: 1.3.0  
 Structure: 1.2.0
 
 Status: Active\
-Scope: Schema Layer + Minimal Behavior Loop
+Scope: Schema Layer + Minimal Behavior Loop + Persistent State Validation
 
 ------------------------------------------------------------------------
 
@@ -96,6 +96,7 @@ MVL v2 以上版本將自動掃描上述資料夾。
 -   修改 common.schema.json
 -   升級 Spec Version
 -   修改 quest.schema.json
+-   修改 save.schema.json（state persistence layer）
 
 # 7.1. Compare Operator Convention（Data Layer）
 

@@ -9,7 +9,7 @@
 ## Version Anchoring
 
 Engine Version: 1.0.0  
-Spec Version: 1.2.0  
+Spec Version: 1.3.0  
 Structure Version: 1.2.0  
 
 Governance Mode: Lock + Controlled Evolution  
@@ -19,7 +19,7 @@ Structure Anchor: DD-004
 
 ## Current Phase
 
-Phase D.1 Complete – Runtime Location Context Validated
+Phase D.2 Complete – Location Persistence Validated
 
 ---
 
@@ -48,7 +48,7 @@ Planned:
 ## Engine Capabilities (Verified)
 
 ### State Model
-- save.game_state = { flags, inventory, vars } (SSOT)
+- save.game_state = { flags, inventory, vars, current_location } (SSOT)
 
 ---
 
@@ -87,8 +87,8 @@ Planned:
 
 ---
 
-### Runtime Context (Phase D.1)
-- session-scoped current_location
+### Runtime Context (Phase D.2)
+- session-scoped current_location (mirror of game_state)
 - valid locations:
   - start_village
   - forest_edge
@@ -101,6 +101,7 @@ Planned:
 - quest completion gate (engine-side overlay)
 - wrong location blocks completion
 - correct location allows completion
+- persistent location via save.game_state.current_location
 
 ---
 
@@ -119,8 +120,11 @@ Behavior Gate:
 Location Gate:
 - status: PASS
 
+Location Persistence:
+- status: PASS
+
 Last Validation Date:
-- 2026-04-11
+- 2026-04-12
 
 ---
 
@@ -145,15 +149,30 @@ Last Validation Date:
 - No schema changes introduced in Phase D.1
 - No structure changes introduced in Phase D.1
 
+### Phase D.2 Additions
+- Location persistence integrated into save.game_state
+- current_location added to save schema (Spec 1.3.0)
+- CLI move / save / reload behavior validated across multiple cycles
+- Runtime context now mirrors persistent location (Single Writer Rule)
+- Save payload upgraded to new schema:
+  - save_schema
+  - engine_version
+  - content_manifest_hash
+  - active_quest
+  - game_state
+  - completed_ids
+- Backward compatibility verified via load-time normalization
+- No structure changes introduced in Phase D.2
+
 ---
 
-## Next Targets (Phase D.2 Preparation)
+## Next Targets
 
-- Decide persistence policy for current_location
-- Evaluate extending location gating beyond completion flow
+- Evaluate extending location gating to accept / event / action flows
 - Assess need for formal world/location schema
 - Evaluate adjacency / movement constraints (graph or rule-based)
-- Define Phase D.2 scope
+- Define Phase D.3 scope (location-aware interaction layer)
+- Run full MVL Protocol regression under Spec 1.3.0
 
 ---
 
@@ -161,11 +180,11 @@ Last Validation Date:
 
 Current state implies:
 
-- Schema Layer → STABLE (Frozen)
+- Schema Layer → STABLE (Extended to Spec 1.3.0)
 - Structure → LOCKED
-- Engine → EXTENDED (Runtime Context Layer Introduced)
-- Evolution Mode → NOT ACTIVE
-- Phase D.1 implemented within governance constraints
+- Engine → EXTENDED (Persistent Location Layer Introduced)
+- Evolution Mode → ACTIVE until governance sync and regression steps are completed
+- Phase D.2 implemented within controlled evolution constraints
 
 ---
 
@@ -174,11 +193,11 @@ Current state implies:
 When using this snapshot:
 
 1. Always cross-check with PROJECT_STATE.json if precision is required
-2. Do NOT infer schema evolution from this file
-3. Do NOT assume Evolution Mode is active
-4. Treat this file as read-only reference for:
+2. Do NOT infer structure evolution from this file
+3. Treat this file as read-only reference for:
    - Phase understanding
    - Capability awareness
-   - Constraint enforcement
+   - constraint enforcement
+4. If governance state and code state diverge, PROJECT_STATE.json takes precedence
 
 ---

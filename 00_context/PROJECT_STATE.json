@@ -2,13 +2,13 @@
   "project_name": "Text RPG Engine",
 
   "engine_version": "1.0.0",
-  "spec_version": "1.2.0",
+  "spec_version": "1.3.0",
   "structure_version": "1.2.0",
 
   "governance_mode": "Lock + Controlled Evolution",
   "structure_anchor": "DD-004",
 
-  "engine_phase": "Phase D.1 Complete – Runtime Location Context Validated",
+  "engine_phase": "Phase D.2 Complete – Location Persistence Validated",
 
   "schema_layer": {
     "completed": [
@@ -28,7 +28,7 @@
   },
 
   "engine_layer_capabilities": {
-    "state_ssot": "save.game_state = { flags, inventory, vars }",
+    "state_ssot": "save.game_state = { flags, inventory, vars, current_location }",
 
     "effect_dispatcher": [
       "gold.add",
@@ -69,9 +69,9 @@
       "save",
       "reload"
     ],
-    
+
     "runtime_context": [
-      "session-scoped current_location",
+      "session-scoped current_location (mirror of game_state)",
       "location validation (valid locations set)",
       "CLI-driven location control (where / move / locations)"
     ],
@@ -79,7 +79,8 @@
     "location_gating": [
       "quest completion gate (engine-side overlay)",
       "wrong location blocks completion",
-      "correct location allows completion"
+      "correct location allows completion",
+      "persistent location via save.game_state.current_location"
     ]
   },
 
@@ -90,7 +91,8 @@
     "quest_mvl_status": "PASS",
     "behavior_gate_status": "PASS",
     "location_gate_status": "PASS",
-    "last_validation_date": "2026-04-11"
+    "location_persistence_status": "PASS",
+    "last_validation_date": "2026-04-12"
   },
 
   "validation_tools": {
@@ -118,19 +120,27 @@
     "CLI system stable: active quest guard + lobby state (DONE/ACTIVE/READY/LOCKED)",
     "No schema changes introduced during Phase C",
     "No structure changes introduced during Phase C",
-    "Regression PASS: legacy effects remain stable",
+
     "Phase D.1 completed: runtime location context + interactive CLI loop",
     "Location-based completion gate verified (wrong location block / correct location allow)",
     "CLI upgraded to interactive session mode",
     "No schema changes introduced during Phase D.1",
-    "No structure changes introduced during Phase D.1"
+    "No structure changes introduced during Phase D.1",
+
+    "Phase D.2 completed: location persistence integrated into save.game_state",
+    "current_location added to save schema (Spec 1.3.0)",
+    "CLI move/save/reload behavior validated across multiple cycles",
+    "Runtime context now mirrors persistent location (Single Writer Rule)",
+    "Save payload upgraded to new schema (save_schema / engine_version / content_manifest_hash)",
+    "Backward compatibility verified via load-time normalization",
+    "No structure changes introduced during Phase D.2"
   ],
 
   "next_targets": [
-    "Decide whether current_location should become persistent (save integration)",
     "Evaluate extending location gating to accept / event / action flows",
     "Assess need for formal world/location schema (map / entity layer)",
     "Evaluate adjacency / movement constraints (graph or rule-based)",
-    "Define Phase D.2 scope"
+    "Define Phase D.3 scope (location-aware interaction layer)",
+    "Run full MVL Protocol regression under Spec 1.3.0"
   ]
 }

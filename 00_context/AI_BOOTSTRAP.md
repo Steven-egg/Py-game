@@ -15,13 +15,13 @@ Source of Truth:
 ## Current State (Derived from PROJECT_STATE.json)
 
 Engine Version: 1.0.0  
-Spec Version: 1.2.0  
+Spec Version: 1.3.0  
 Structure Version: 1.2.0  
 
 Governance Mode: Lock + Controlled Evolution  
 
 Current Phase:  
-Phase D.1 Complete – Runtime Location Context Validated
+Phase D.2 Complete – Location Persistence Validated
 
 ---
 
@@ -51,8 +51,8 @@ Phase D.1 Complete – Runtime Location Context Validated
 
 ---
 
-### Runtime Context (Phase D.1)
-- session-scoped current_location
+### Runtime Context (Phase D.2)
+- session-scoped current_location (mirror of game_state)
 - valid locations:
   - start_village
   - forest_edge
@@ -65,35 +65,38 @@ Phase D.1 Complete – Runtime Location Context Validated
 - quest completion gate (engine-side overlay)
 - wrong location blocks completion
 - correct location allows completion
+- persistent location via save.game_state.current_location
 
 ---
 
 ### State Integrity
-- save.game_state = SSOT confirmed
-- backward compatibility preserved
+- save.game_state = { flags, inventory, vars, current_location } (SSOT)
+- runtime_context mirrors persistent state (Single Writer Rule)
+- backward compatibility preserved (load-time normalization)
 
 ---
 
 ## Structural Constraints (HARD RULES)
 
-- ❌ No schema changes
 - ❌ No structure changes
 - ❌ No loader modification
 - ❌ No new top-level governance files
 - ❌ No registry mutation outside append-only
+
+- ⚠️ Schema evolution allowed ONLY via Evolution Mode (already used in D.2)
 
 - ✅ All changes must remain within existing structure
 - ✅ All structural evolution must go through DD + Evolution Mode
 
 ---
 
-## Current Focus (Phase D.2 Preparation)
+## Current Focus (Phase D.3 Preparation)
 
-- Decide persistence policy for current_location
-- Evaluate extending location gating beyond completion flow
+- Evaluate extending location gating to accept / event / action flows
 - Assess need for formal world/location schema (map / entity layer)
 - Evaluate adjacency / movement constraints
-- Define Phase D.2 scope
+- Define Phase D.3 scope (location-aware interaction layer)
+- Run full MVL Protocol regression under Spec 1.3.0
 
 ---
 

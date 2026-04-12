@@ -584,3 +584,121 @@ Result:
 - 為後續 D.2（location persistence / action gate expansion / world layer evaluation）建立基礎
 
 ---
+
+## DD-019
+Date: 2026-04-12
+Title: Phase D.2 Location Persistence via save.game_state.current_location
+
+Impact: Mid
+Scope: 02_specs/schema/save.schema.json、05_engine/cli_mvl.py、05_engine/save_manager.py、05_engine/location_runtime.py
+
+Reason:
+Phase D.1 已完成 runtime-only location context 驗證，
+確認 engine 已具備最小 location-aware behavior gate，
+但 current_location 僅存在於 session runtime context，
+重啟 CLI 或 reload 後會回到預設值，無法跨 session 持續保存位置狀態。
+
+此限制造成以下問題：
+1. 地理位置無法成為持久化存檔狀態的一部分。
+2. location gate 雖可作用於 completion flow，但無法跨 session 延續。
+3. 後續若擴張 accept gate / event gate / action gate，將持續依賴 runtime-only overlay，增加狀態漂移風險。
+
+因此，Phase D.2 採用最小範圍演進策略，
+將 current_location 從 runtime-only context 提升為 save-state 的持久化欄位，
+但不引入正式 world/location schema，也不修改 content layer 或 loader contract。
+
+Decision:
+- 正式進入 Evolution Mode（Spec Version 1.2.0 → 1.3.0）
+- 不新增 `location.schema.json`
+- 不新增 `world.schema.json`
+- 不修改 `03_data` 內容格式
+- 不修改 ContentLoader 行為
+- 僅於 `save.schema.json` 的 `game_state` 下新增：
+  - `current_location: string`
+- `current_location` 預設值定為 `start_village`
+- `current_location` 不列入 `game_state.required`，以維持舊存檔向後相容
+- `cli_mvl.py` 啟動與 reload 時，runtime_context 改由 `game_state["current_location"]` 回填
+- `move <location_id>` 成功後，除更新 runtime_context 外，必須同步寫入 `game_state["current_location"]`
+- `save_manager.py` 升級至與 `save.schema.json` 對齊的新 save payload 格式：
+  - `save_schema`
+  - `engine_version`
+  - `content_manifest_hash`
+  - `active_quest`
+  - `game_state`
+  - `completed_ids`
+- 舊存檔若缺少 `current_location` 或新 metadata 欄位，load 時自動補預設值並允許 self-healing write-back
+
+Single Writer Rule:
+- `game_state["current_location"]` 為持久化 SSOT
+- `runtime_context["current_location"]` 僅為 session mirror / cache
+- engine 不得讓 runtime_context 成為獨立真實來源
+
+Validation:
+已完成以下驗證：
+1. 啟動 CLI 時，runtime_context 可由 `game_state.current_location` 正確回填
+2. `move forest_edge` 後，`game_state` 與 `runtime_context` 皆同步更新
+3. `save` 後 `slot_d2_test.json` 內容符合新 save payload 格式
+4. `reload` 後位置不再重置為預設值，而是正確回填存檔位置
+5. 已驗證 `start_village ↔ forest_edge` 往返切換、存檔、重載後皆維持正確位置
+6. 新 save 檔內容確認如下結構：
+   - `save_schema`
+   - `engine_version`
+   - `content_manifest_hash`
+   - `active_quest`
+   - `game_state.current_location`
+   - `completed_ids`
+
+Result:
+- Phase D.2 的核心位置持久化已完成
+- location state 正式納入 save-state SSOT
+- CLI 已具備跨 session 的位置連續性
+- save payload 已與 `save.schema.json` 對齊
+- 為後續 accept / event / action flow 的 location gating 擴張建立持久化基礎
+- 未引入 structure change
+- 未引入 loader change
+- 未引入 content contract change
+
+---
+
+---
+
+### Evolution Closure – Phase D.2
+
+Status: Exiting Evolution Mode
+
+Evolution Summary:
+- Spec Version: 1.2.0 → 1.3.0
+- Structure Version: 1.2.0 (UNCHANGED)
+- Engine Version: 1.0.0 (UNCHANGED)
+
+Scope of Evolution:
+- save.schema.json extended (current_location added)
+- cli_mvl.py updated (persistent location sync + reload restore)
+- save_manager.py updated (new save payload alignment)
+- runtime_context redefined as mirror of persistent state
+
+Governance Compliance:
+- No structure changes introduced
+- No loader behavior modified
+- No content layer contract changed
+- All schema evolution executed via Design Decision (DD-019)
+- No cross-layer contamination detected
+
+Validation:
+- CLI persistence loop verified (move → save → reload → restore)
+- Bidirectional location switching validated (start_village ↔ forest_edge)
+- Save payload verified against save.schema.json
+- Backward compatibility verified via load-time normalization
+- MVL Protocol regression completed under Spec 1.3.0
+
+Final State:
+- Location persistence integrated into State SSOT
+- runtime_context downgraded to session mirror
+- Single Writer Rule enforced (game_state as source of truth)
+
+Conclusion:
+Phase D.2 is COMPLETE.
+Evolution Mode is now CLOSED.
+System returns to Lock + Controlled Evolution baseline.
+
+---

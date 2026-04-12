@@ -12,6 +12,12 @@ class SaveManagerError(Exception):
     pass
 
 
+DEFAULT_SAVE_SCHEMA = "save@1.0"
+DEFAULT_ENGINE_VERSION = "1.0.0"
+DEFAULT_CONTENT_MANIFEST_HASH = "dev_local"
+DEFAULT_LOCATION = "start_village"
+
+
 def _ensure_dict(v: Any) -> Dict[str, Any]:
     return v if isinstance(v, dict) else {}
 
@@ -26,26 +32,37 @@ def _ensure_list_str(v: Any) -> List[str]:
     return out
 
 
+def _ensure_nonempty_str(v: Any, default: str) -> str:
+    if isinstance(v, str) and v.strip():
+        return v.strip()
+    return default
+
+
 def _normalize_game_state(gs: Any) -> Dict[str, Any]:
     """
-    MVL baseline state (SSOT for runtime condition/effect):
+    Phase D.2 baseline state (persistent SSOT for runtime condition/effect + location):
       game_state = {
         "flags": {...},
         "inventory": {...},
         "vars": {...},
+        "current_location": "start_village",
       }
-    Tolerant: if save file is missing buckets or has wrong types, fix them.
+
+    Tolerant:
+    - if save file is missing buckets or has wrong types, fix them
+    - if current_location is missing / invalid type, restore default
     """
     out = _ensure_dict(gs)
 
-    # Required buckets for Phase B
     flags = out.get("flags")
     inv = out.get("inventory")
     vars_ = out.get("vars")
+    loc = out.get("current_location")
 
     out["flags"] = flags if isinstance(flags, dict) else {}
     out["inventory"] = inv if isinstance(inv, dict) else {}
     out["vars"] = vars_ if isinstance(vars_, dict) else {}
+    out["current_location"] = loc.strip() if isinstance(loc, str) and loc.strip() else DEFAULT_LOCATION
 
     return out
 
@@ -53,25 +70,36 @@ def _normalize_game_state(gs: Any) -> Dict[str, Any]:
 @dataclass
 class SaveBlob:
     """
-    MVL save format (engine-owned, not schema-owned):
+    Save format aligned to save.schema.json:
+
       {
-        "version": "engine_phase_b_mvl_1",
+        "save_schema": "save@1.0",
+        "engine_version": "1.0.0",
+        "content_manifest_hash": "dev_local",
         "active_quest": {...} | null,
-        "completed_ids": [ "q.x", ... ],
-        "game_state": {...}
+        "game_state": {...},
+        "completed_ids": ["q.x", ...]
       }
+
+    Backward compatibility:
+    - old save files may still contain "version"
+    - missing metadata fields are auto-filled with defaults
     """
-    version: str
+    save_schema: str
+    engine_version: str
+    content_manifest_hash: str
     active_quest: Optional[ActiveQuest]
     game_state: Dict[str, Any]
     completed_ids: List[str]
 
     def to_dict(self) -> Dict[str, Any]:
         return {
-            "version": self.version,
+            "save_schema": self.save_schema,
+            "engine_version": self.engine_version,
+            "content_manifest_hash": self.content_manifest_hash,
             "active_quest": self.active_quest.to_dict() if self.active_quest else None,
-            "completed_ids": list(self.completed_ids),
             "game_state": self.game_state,
+            "completed_ids": list(self.completed_ids),
         }
 
     @staticmethod
@@ -82,18 +110,25 @@ class SaveBlob:
         aq = d.get("active_quest")
         active = ActiveQuest.from_dict(aq) if isinstance(aq, dict) else None
 
-        # Normalize + ensure required buckets
         gs = _normalize_game_state(d.get("game_state"))
-
-        # NEW: completed quest ids (backward compatible)
         completed_ids = _ensure_list_str(d.get("completed_ids"))
 
-        ver = d.get("version")
-        if not isinstance(ver, str) or not ver.strip():
-            ver = "engine_phase_b_mvl_1"
+        # New metadata fields (Phase D.2 / Spec 1.3.0)
+        save_schema = _ensure_nonempty_str(d.get("save_schema"), DEFAULT_SAVE_SCHEMA)
+        engine_version = _ensure_nonempty_str(d.get("engine_version"), DEFAULT_ENGINE_VERSION)
+        content_manifest_hash = _ensure_nonempty_str(
+            d.get("content_manifest_hash"),
+            DEFAULT_CONTENT_MANIFEST_HASH,
+        )
+
+        # Backward compatibility note:
+        # old save files may still have "version", but it is no longer part of schema output.
+        # We intentionally ignore it after load normalization.
 
         return SaveBlob(
-            version=ver,
+            save_schema=save_schema,
+            engine_version=engine_version,
+            content_manifest_hash=content_manifest_hash,
             active_quest=active,
             game_state=gs,
             completed_ids=completed_ids,
@@ -117,9 +152,10 @@ class SaveManager:
         fp = self.slot_path(slot)
 
         if not fp.exists():
-            # MVL: if no save, return empty baseline with required buckets
             return SaveBlob(
-                version="engine_phase_b_mvl_1",
+                save_schema=DEFAULT_SAVE_SCHEMA,
+                engine_version=DEFAULT_ENGINE_VERSION,
+                content_manifest_hash=DEFAULT_CONTENT_MANIFEST_HASH,
                 active_quest=None,
                 game_state=_normalize_game_state({}),
                 completed_ids=[],
@@ -135,18 +171,17 @@ class SaveManager:
 
         blob = SaveBlob.from_dict(raw)
 
-        # Optional: keep save files "self-healing" (non-fatal). If the loaded file is missing
-        # required buckets / fields, write back normalized format so future runs are clean.
+        # Self-healing write-back:
+        # normalize old / incomplete save files into current schema-aligned format.
         try:
             normalized = blob.to_dict()
-            if (
-                normalized.get("game_state") != raw.get("game_state")
-                or normalized.get("version") != raw.get("version")
-                or normalized.get("completed_ids") != raw.get("completed_ids")
-            ):
-                fp.write_text(json.dumps(normalized, ensure_ascii=False, indent=2), encoding="utf-8")
+            if normalized != raw:
+                fp.write_text(
+                    json.dumps(normalized, ensure_ascii=False, indent=2),
+                    encoding="utf-8",
+                )
         except Exception:
-            # never fail load due to normalization write-back
+            # Never fail load due to normalization write-back
             pass
 
         return blob
@@ -155,11 +190,20 @@ class SaveManager:
         fp = self.slot_path(slot)
 
         # Defensive normalize before save
+        blob.save_schema = _ensure_nonempty_str(blob.save_schema, DEFAULT_SAVE_SCHEMA)
+        blob.engine_version = _ensure_nonempty_str(blob.engine_version, DEFAULT_ENGINE_VERSION)
+        blob.content_manifest_hash = _ensure_nonempty_str(
+            blob.content_manifest_hash,
+            DEFAULT_CONTENT_MANIFEST_HASH,
+        )
         blob.game_state = _normalize_game_state(blob.game_state)
         blob.completed_ids = _ensure_list_str(blob.completed_ids)
 
         try:
-            fp.write_text(json.dumps(blob.to_dict(), ensure_ascii=False, indent=2), encoding="utf-8")
+            fp.write_text(
+                json.dumps(blob.to_dict(), ensure_ascii=False, indent=2),
+                encoding="utf-8",
+            )
         except Exception as e:
             raise SaveManagerError(f"Failed to write save file: {fp} ({e})")
 
