@@ -15,6 +15,5 @@
   },
   "value": 5,
   "weight": 0.1,
-  "flags": [],
-  "$schema": "02_specs/schema/item.schema.json"
+  "flags": []
 }

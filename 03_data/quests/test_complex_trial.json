@@ -60,13 +60,15 @@
       },
       {
         "type": "inventory.add",
+        "target": {
+          "entity_id": "pc.player"
+        },
         "params": {
           "item_id": "potion",
-          "count": 2
+          "qty": 2
         }
       }
     ],
     "reward_text_key": "txt.quest.elite.trial_of_balance.reward"
-  },
-  "$schema": "02_specs/schema/quest.schema.json"
+  }
 }

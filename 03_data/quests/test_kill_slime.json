@@ -46,6 +46,5 @@
       }
     ],
     "reward_text_key": "txt.quest.side.slime_hunt.reward"
-  },
-  "$schema": "02_specs/schema/quest.schema.json"
+  }
 }

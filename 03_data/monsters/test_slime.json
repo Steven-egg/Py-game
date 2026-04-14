@@ -28,6 +28,5 @@
   },
   "drops": {
     "entries": []
-  },
-  "$schema": "02_specs/schema/monster.schema.json"
+  }
 }

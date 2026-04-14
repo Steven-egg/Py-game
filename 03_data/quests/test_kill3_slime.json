@@ -41,12 +41,11 @@
           "world": "global"
         },
         "params": {
-          "key": "flg.quest.side.slime_hunt_3.completed",
+          "key": "flg.quest.side.slime_hunt_3_completed",
           "value": true
         }
       }
     ],
     "reward_text_key": "txt.quest.side.slime_hunt_3.reward"
-  },
-  "$schema": "02_specs/schema/quest.schema.json"
+  }
 }

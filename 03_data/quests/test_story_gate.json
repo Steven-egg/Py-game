@@ -35,6 +35,5 @@
       }
     ],
     "reward_text_key": "txt.quest.main.unlock_gate.reward"
-  },
-  "$schema": "02_specs/schema/quest.schema.json"
+  }
 }
