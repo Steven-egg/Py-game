@@ -703,3 +703,172 @@ Evolution Mode is now CLOSED.
 System returns to Lock + Controlled Evolution baseline.
 
 ---
+
+以下為可直接寫入 `design_decision_log.md` 的正式版本（精簡且符合既有 DD 格式）：
+
+---
+
+## DD-020
+
+Date: 2026-04-15
+Title: Effect DSL Governance Charter（Naming / Boundary / Coverage 統一治理）
+
+Impact: High
+Scope: 02_specs（contract interpretation）、03_data（authoring constraint）、05_engine（behavior alignment policy）
+
+---
+
+### Reason
+
+於 Phase D.2 regression 收斂過程中，發現 Effect DSL 存在三類跨層不一致問題：
+
+1. **Naming Drift**
+
+   * Schema 使用 `flag.add_int`
+   * Engine（DD-016）使用 `flag.int_add`
+
+2. **Contract Boundary Violation**
+
+   * Engine 支援 `var.add`
+   * Schema 未定義，content 使用將被 schema gate 阻擋 
+
+3. **Coverage Gap**
+
+   * 多數 effect 僅存在於 schema enum，未經 engine 行為驗證（如 `flag.unset`, `stat.modify`, `quest.*` 等）
+
+上述問題本質為：
+
+> **Schema（contract）、Engine（capability）、Content（usage）三層脫節**
+
+需建立統一治理原則，以避免 DSL 長期漂移與不可預測行為。
+
+---
+
+### Decision
+
+建立 **Effect DSL Governance Charter**，包含三項強制性治理規則：
+
+---
+
+#### 1. Canonical Naming（命名權威）
+
+* `flag.add_int` 為唯一 canonical DSL 名稱（schema authority）
+* `flag.int_add` 為 non-canonical（engine-side naming）
+
+**Enforcement:**
+
+* 禁止 `03_data` 使用 `flag.int_add`
+* 違反視為 **Naming Drift Violation**
+
+---
+
+#### 2. Contract Boundary（var.add 邊界封閉）
+
+* `var.add` 定義為 **Engine-only Capability**
+* 不屬於 schema contract，不得進入 content 層
+
+**Enforcement:**
+
+* `03_data` 出現 `var.add` → **Contract Violation**
+* 專用 effect（如 `gold.add`）優先，不得以通用指令替代
+
+---
+
+#### 3. Coverage Validation（覆蓋驗證機制）
+
+所有 effect 必須通過：
+
+* Schema Coverage（規格合法）
+* Behavior Coverage（engine 可執行）
+
+**分類：**
+
+* Fully Covered（雙通過）
+* Schema Only（未驗證 engine）
+* Not Covered（未驗證）
+
+**Enforcement:**
+
+* 未通過 Behavior Coverage 的 effect：
+
+  * 不得標記為 Ready
+  * 不得用於正式 content
+
+---
+
+### Result
+
+建立 Effect DSL 的治理閉環：
+
+1. **Definition**：Schema 為唯一 DSL contract
+2. **Constraint**：Naming + Boundary 限制
+3. **Validation**：Schema + Behavior 雙層驗證
+4. **Enforcement**：Negative Enforcement（違規即攔截）
+5. **Evolution**：未對齊項目遞延至 D.4
+
+確保：
+
+* DSL 命名單一來源（消除 drift）
+* Content 不再誤用 engine capability
+* DSL 可用性由測試覆蓋決定，而非存在性
+
+---
+
+### Deferred (Phase D.4 – Requires Evolution Mode)
+
+以下項目明確遞延：
+
+1. **Engine–Schema Naming Alignment**
+
+   * `flag.int_add` → canonical 對齊
+
+2. **`var.add` DSL 升格**
+
+   * contract 定義（target / params）
+   * 與 registry 綁定策略
+
+3. **Registry–Schema 自動同步**
+
+   * 建立 registry 驅動的 schema 注入機制
+
+4. **Extended Effect Coverage**
+
+   * `quest.*`, `battle.*`, `ui.*`, `scene.*` 等行為驗證
+
+---
+
+### Constraints
+
+* 不修改 schema（Spec 1.3.0 維持不變）
+* 不修改 engine dispatcher（DD-016 保持有效）
+* 不改變專案結構（Structure 1.2.0 鎖定）
+
+所有實質行為或 contract 變更：
+
+> **This requires DD + Evolution Mode**
+
+---
+
+### Version Anchor
+
+* Spec Version: **1.3.0**
+* Engine Version: **1.0.0**
+* Phase: **D.3 Evaluation → Governance Formalization**
+
+---
+
+### Conclusion
+
+DD-020 將 Effect DSL 從「實作導向能力集合」提升為：
+
+> **受 Schema、Coverage、Boundary 約束的正式語言系統**
+
+並在不破壞現有 Lock 狀態下，完成：
+
+* 命名權威確立
+* 邊界封閉（技術債隔離）
+* 覆蓋驗證制度建立
+* 演進路徑（D.4）預埋
+
+---
+

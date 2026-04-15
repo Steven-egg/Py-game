@@ -8,7 +8,7 @@
   "governance_mode": "Lock + Controlled Evolution",
   "structure_anchor": "DD-004",
 
-  "engine_phase": "Phase D.2 Complete – Location Persistence Validated",
+  "engine_phase": "Phase D.3 Complete – Effect DSL Governance Established",
 
   "schema_layer": {
     "completed": [
@@ -110,30 +110,12 @@
   },
 
   "notes": [
-    "Phase C fully completed: Effect Dispatcher expansion + Quest runtime validation",
-    "Main quest chain (002 → 005) validated successfully via CLI MVL loop",
-    "Condition system verified: flag.is_true / flag.int_compare / and / inventory.has",
-    "Behavior Gate confirmed stable across quest acceptance and completion flow",
-    "State SSOT integrity verified: all condition evaluation reads from save.game_state",
-    "Effect dispatch verified on completion: gold.add + flag.set + inventory.add",
-    "Save system stable: completed_ids added (backward compatible)",
-    "CLI system stable: active quest guard + lobby state (DONE/ACTIVE/READY/LOCKED)",
-    "No schema changes introduced during Phase C",
-    "No structure changes introduced during Phase C",
-
-    "Phase D.1 completed: runtime location context + interactive CLI loop",
-    "Location-based completion gate verified (wrong location block / correct location allow)",
-    "CLI upgraded to interactive session mode",
-    "No schema changes introduced during Phase D.1",
-    "No structure changes introduced during Phase D.1",
-
-    "Phase D.2 completed: location persistence integrated into save.game_state",
-    "current_location added to save schema (Spec 1.3.0)",
-    "CLI move/save/reload behavior validated across multiple cycles",
-    "Runtime context now mirrors persistent location (Single Writer Rule)",
-    "Save payload upgraded to new schema (save_schema / engine_version / content_manifest_hash)",
-    "Backward compatibility verified via load-time normalization",
-    "No structure changes introduced during Phase D.2"
+    "DD-020 established: Effect DSL Governance Charter (Naming / Boundary / Coverage)",
+    "Canonical naming locked: flag.add_int (flag.int_add deprecated as non-canonical)",
+    "Contract boundary enforced: var.add is engine-only (forbidden in content layer)",
+    "Coverage validation introduced: Schema + Behavior dual-layer enforcement",
+    "Negative enforcement active: non-canonical DSL and uncovered effects blocked from content",
+    "Phase D.4 prepared: Registry–Schema sync + DSL alignment + coverage expansion"
   ],
 
   "next_targets": [

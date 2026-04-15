@@ -19,9 +19,10 @@ Spec Version: 1.3.0
 Structure Version: 1.2.0  
 
 Governance Mode: Lock + Controlled Evolution  
+Evolution Mode: CLOSED
 
-Current Phase:  
-Phase D.2 Complete – Location Persistence Validated
+Current Phase:
+Phase D.3 Complete – Effect DSL Governance Established
 
 ---
 
@@ -51,7 +52,7 @@ Phase D.2 Complete – Location Persistence Validated
 
 ---
 
-### Runtime Context (Phase D.2)
+### Runtime Context 
 - session-scoped current_location (mirror of game_state)
 - valid locations:
   - start_village
@@ -90,15 +91,16 @@ Phase D.2 Complete – Location Persistence Validated
 
 ---
 
-## Current Focus (Phase D.3 Preparation)
+## 🚧 D.4 Evolution Direction (Pre-Activation)
 
-- Evaluate extending location gating to accept / event / action flows
-- Assess need for formal world/location schema (map / entity layer)
-- Evaluate adjacency / movement constraints
-- Define Phase D.3 scope (location-aware interaction layer)
-- Run full MVL Protocol regression under Spec 1.3.0
+DO NOT IMPLEMENT YET
 
----
+D.4 will focus on:
+
+1. Engine Naming Alignment (flag.int_add → flag.add_int)
+2. var.add Contract Decision (DSL vs Engine-only)
+3. Registry → Schema Sync (SSOT automation)
+4. Effect Coverage Expansion
 
 ## AI Collaboration Rules (Quick Mode)
 
@@ -112,6 +114,99 @@ When AI joins this project, it MUST:
 3. Treat PROJECT_STRUCTURE.md as structure SSOT
 4. Treat design_decision_log.md as evolution history
 5. Refuse any action that violates governance constraints
+
+## 🧠 EFFECT DSL GOVERNANCE (DD-020)
+
+### 1. Canonical Naming
+
+* ✅ flag.add_int → ONLY valid DSL naming
+* ❌ flag.int_add → forbidden in content (Naming Drift)
+
+---
+
+### 2. Contract Boundary
+
+* 🚫 var.add → Engine-only capability
+* ❌ Forbidden in 03_data
+
+Rule:
+
+> Content must ONLY use schema-defined DSL
+
+---
+
+### 3. Coverage Validation
+
+Effect DSL must pass:
+
+* Schema Coverage
+* Behavior Coverage
+
+Only **Fully Covered** effects are allowed in content.
+
+---
+
+### 4. Verified DSL (Fully Covered)
+
+```md
+gold.add
+flag.set
+flag.add_int
+inventory.add
+inventory.remove
+```
+
+---
+
+### 5. Forbidden / Blocked DSL
+
+```md
+flag.int_add   → Naming Drift
+var.add        → Contract Violation
+```
+
+---
+
+### 6. Gate Enforcement Rules
+
+* ❌ Non-canonical DSL → BLOCK
+* ❌ Engine-only DSL → BLOCK
+* ❌ Not Covered DSL → BLOCK
+
+````
+
+---
+
+## 🚧 D.4 Evolution Direction (Pre-Activation)
+
+```md
+DO NOT IMPLEMENT YET
+
+D.4 will focus on:
+
+1. Engine Naming Alignment (flag.int_add → flag.add_int)
+2. var.add Contract Decision (DSL vs Engine-only)
+3. Registry → Schema Sync (SSOT automation)
+4. Effect Coverage Expansion
+````
+
+---
+
+## ⚠️ AI HARD CONSTRAINTS
+
+```md
+- DO NOT modify schema (02_specs)
+- DO NOT modify structure
+- DO NOT introduce new DSL
+- DO NOT allow var.add in content
+- DO NOT allow flag.int_add in content
+
+All contract changes require:
+→ DD + Evolution Mode
+```
+
+---
+
 
 # =========================================================
 # END OF SNAPSHOT — BELOW IS FULL GOVERNANCE CONTRACT

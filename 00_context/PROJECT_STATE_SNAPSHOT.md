@@ -19,7 +19,7 @@ Structure Anchor: DD-004
 
 ## Current Phase
 
-Phase D.2 Complete – Location Persistence Validated
+Phase D.3 Complete – Effect DSL Governance Established
 
 ---
 
@@ -53,12 +53,14 @@ Planned:
 ---
 
 ### Effect Dispatcher
-- gold.add
-- flag.set
-- inventory.add
-- inventory.remove
-- flag.int_add
-- var.add
+- gold.add ✅ (Fully Covered)
+- flag.set ✅ (Fully Covered)
+- flag.add_int ✅ (Canonical Naming)
+- inventory.add ✅ (Fully Covered)
+- inventory.remove ✅ (Fully Covered)
+
+- flag.int_add ⚠️ (Non-canonical / Naming Drift – forbidden in content)
+- var.add 🚫 (Engine-only / Contract Violation if used in content)
 
 ---
 
@@ -178,13 +180,24 @@ Last Validation Date:
 
 ## Governance Interpretation
 
-Current state implies:
+Effect DSL Governance Charter (DD-020) is now active:
 
-- Schema Layer → STABLE (Extended to Spec 1.3.0)
-- Structure → LOCKED
-- Engine → EXTENDED (Persistent Location Layer Introduced)
-- Evolution Mode → ACTIVE until governance sync and regression steps are completed
-- Phase D.2 implemented within controlled evolution constraints
+- Naming Authority → Schema defines canonical DSL
+- Boundary Enforcement → Engine-only capabilities cannot enter content
+- Coverage Validation → DSL must pass Schema + Behavior
+
+Negative Constraints:
+
+- ❌ flag.int_add forbidden in 03_data
+- ❌ var.add forbidden in 03_data
+- ❌ Uncovered effects cannot be marked as Ready
+
+System State:
+
+- Schema Layer → Stable (Spec 1.3.0)
+- Structure → Locked (1.2.0)
+- Engine → Stable (with internal drift isolated)
+- Evolution Mode → CLOSED (D.4 pending activation)
 
 ---
 
