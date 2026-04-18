@@ -173,7 +173,7 @@ Last Validation Date:
 - Evaluate extending location gating to accept / event / action flows
 - Assess need for formal world/location schema
 - Evaluate adjacency / movement constraints (graph or rule-based)
-- Define Phase D.3 scope (location-aware interaction layer)
+- Define Phase D.4 scope (Registry–Schema sync / DSL alignment / coverage expansion)
 - Run full MVL Protocol regression under Spec 1.3.0
 
 ---
@@ -214,3 +214,81 @@ When using this snapshot:
 4. If governance state and code state diverge, PROJECT_STATE.json takes precedence
 
 ---
+
+## Governance Extensions (DD-020 / DD-021 Synced)
+
+### Effect DSL Governance (DD-020)
+
+- Canonical Naming Authority: schema-defined DSL (e.g. flag.add_int)
+- Non-canonical forbidden: flag.int_add (blocked in content layer)
+- Engine-only boundary:
+  - var.add → NOT allowed in 03_data
+- Coverage requirement:
+  - Schema Coverage + Behavior Coverage (dual gate)
+- Enforcement:
+  - Negative enforcement (violation → block usage)
+
+---
+
+### AI Collaboration Workflow (DD-021)
+
+#### Role Separation
+
+- ChatGPT (Governance):
+  - DSL / Blueprint / audit / task decomposition
+
+- ChatGPT (Production):
+  - code / JSON / debug
+  - cannot modify DSL / Schema
+
+- Gemini:
+  - JIRA bridge only
+
+- NotebookLM:
+  - SSOT validator (drift detection)
+
+---
+
+#### Boundary Enforcement
+
+- JIRA is NOT SSOT
+- JIRA cannot store:
+  - DSL
+  - Schema
+  - Audit / Gate logic
+
+- Production cannot modify:
+  - DSL
+  - Schema
+
+- Governance does not implement runtime
+
+---
+
+#### Workflow Pipeline
+
+Governance → Task → JIRA → Production → Validation → Feedback
+
+---
+
+### System Interpretation Update
+
+System is now governed by:
+
+1. Effect DSL Governance (DD-020)
+2. AI Workflow Governance (DD-021)
+
+These rules are ACTIVE and enforced at:
+
+- Content authoring
+- DSL usage
+- AI collaboration boundary
+
+---
+
+### State Consistency Note
+
+If mismatch occurs:
+
+- PROJECT_STATE.json remains the ONLY authority
+- Snapshot must be regenerated to reflect latest governance

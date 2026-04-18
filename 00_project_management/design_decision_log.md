@@ -870,5 +870,169 @@ DD-020 將 Effect DSL 從「實作導向能力集合」提升為：
 * 覆蓋驗證制度建立
 * 演進路徑（D.4）預埋
 
+
 ---
 
+
+# DD-021 – AI Collaboration Workflow Governance
+
+## Status
+Accepted
+
+## Date
+2026-04-18
+
+## Context
+
+隨著專案進入 Phase D.4（Evolution Blueprint 準備階段），  
+系統開發流程已同時涉及：
+
+- DSL 設計（01_design_docs）
+- 任務管理（JIRA）
+- 實作（05_engine / 03_data）
+- SSOT 驗證（NotebookLM）
+
+在單一 AI 對話中同時處理上述層級，已觀察到以下問題：
+
+1. Context Leakage（語境混用）  
+   - JIRA 任務內容混入 DSL / Audit 規範  
+   - AI 角色混淆（Spec Auditor vs Task Executor）
+
+2. Boundary Violation（邊界破壞）  
+   - JIRA 被用作設計文件承載  
+   - Production 嘗試修改 DSL / Schema
+
+3. Traceability Degradation（可追溯性下降）  
+   - 任務紀錄無法區分「執行」與「設計決策」
+
+為確保系統維持 SSOT、一致性與可演進性，需建立正式之 AI 協作治理機制。
+
+---
+
+## Decision
+
+採用「AI Collaboration Workflow」作為專案之正式治理規則，並定義如下分工與邊界：
+
+### 1. Role Separation（角色分離）
+
+#### ChatGPT（Governance）
+- 負責 DSL / Blueprint / audit_reports / SOP
+- 負責任務拆解（設計 → 任務）
+
+#### ChatGPT（Production）
+- 負責 code / JSON / Debug
+- 不得主動修改 DSL / Schema
+
+#### Gemini（JIRA Bridge）
+- 負責 JIRA 操作與轉換（Task / Comment）
+- 不得參與 DSL / Schema 設計
+
+#### JIRA
+- 僅作為任務追蹤系統
+- 不得承載設計文件或 DSL 規範
+
+#### NotebookLM
+- 作為 SSOT Validator
+- 檢查 DSL / Schema / Data 是否發生 Drift
+
+---
+
+### 2. Boundary Enforcement（邊界強制）
+
+以下規則為強制：
+
+- JIRA 不得存放：
+  - DSL 規範
+  - Gate 判讀
+  - Schema 設計
+- Production 不得修改 DSL / Schema
+- Governance 不直接進行 runtime 實作
+- NotebookLM 不以 JIRA 作為 SSOT 判斷依據
+
+違反上述規則視為 **Context Drift / Boundary Violation**。
+
+---
+
+### 3. Workflow Definition（流程定義）
+
+標準流程如下：
+
+
+Governance（DSL / Blueprint）
+↓
+Task Decomposition
+↓
+JIRA（任務建立與追蹤）
+↓
+Production（實作）
+↓
+NotebookLM（SSOT 驗證）
+↓
+Feedback → Governance（必要時修正）
+
+
+---
+
+### 4. SSOT Alignment（單一真實來源）
+
+SSOT 判斷優先順序：
+
+1. 00_context（Governance 規則）
+2. 01_design_docs（DSL / Audit）
+3. 02_specs（Schema）
+4. 03_data（內容）
+
+JIRA 不屬於 SSOT。
+
+---
+
+### 5. Governance Artifact
+
+本決策對應治理文件：
+
+- `00_context/AI_COLLAB_WORKFLOW.md`
+
+該文件作為：
+
+- AI 協作規則定義
+- 分層邊界控制依據
+- Drift Prevention 規範
+
+---
+
+## Consequences
+
+### Positive
+
+- 明確隔離設計 / 任務 / 實作三層
+- 降低 AI 語境污染（Context Leakage）
+- 提升 JIRA 可讀性與可維護性
+- 強化 SSOT 一致性與驗證能力
+
+---
+
+### Negative / Trade-offs
+
+- 增加初期操作複雜度（多對話 / 多工具）
+- 需要維持跨層溝通（Feedback Loop）
+
+---
+
+### Risk Mitigation
+
+- 使用 NotebookLM 作為統一 SSOT Validator
+- 透過 JIRA 僅追蹤任務，不承載設計
+- Governance 層統一管理 DSL 與規範
+
+---
+
+## Notes
+
+本決策不改變既有 DSL / Schema / Engine 設計，  
+僅針對「AI 協作流程」與「任務治理模式」進行規範化。
+
+本決策為 Phase D.4 啟動前之治理基礎，  
+後續 Evolution Mode 啟動須遵循本規則執行。
+
+
+---
