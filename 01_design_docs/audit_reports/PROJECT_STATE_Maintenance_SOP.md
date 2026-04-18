@@ -29,6 +29,6 @@
 
 ## ⚠️ Spec Auditor 關鍵提醒 (Governance Protocol)
 
-1.  **備份同步**：請務必將此 **PROJECT_STATE_Maintenance_SOP.md** 內容同步至您的 Git 備份區域（如 `docs-external/`），這對於維持長期的 AI 協作脈絡至關重要。
+1.  **備份同步**：請務必將此 **PROJECT_STATE_Maintenance_SOP.md** 內容同步至您的 Git 備份區域（如 `audit_reports/`），這對於維持長期的 AI 協作脈絡至關重要。
 2.  **建立治理軌跡**：每一次手動修改 `PROJECT_STATE.json` 後，建議在 Git 提交訊息中引用此 SOP 的檢查點編號。
 3.  **嚴禁實作**：再次提醒，DSL-6 僅規範「程序」，目前禁止產生任何用於修改 JSON 的 Python 代碼。
