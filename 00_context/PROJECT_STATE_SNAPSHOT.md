@@ -6,6 +6,39 @@
 
 ---
 
+## AI Quick Context (Startup Summary)
+
+Phase: D.3 Complete  
+Spec: 1.3.0  
+Structure: Locked (1.2.0)  
+Governance Mode: Lock + Controlled Evolution  
+
+Authority:
+- State SSOT → PROJECT_STATE.json
+- Structure SSOT → PROJECT_STRUCTURE.md
+
+Core Governance:
+- DD-020: Effect DSL Governance ACTIVE
+- DD-021: AI Workflow Governance ACTIVE
+
+Critical Constraints:
+- ❌ flag.int_add forbidden in content
+- ❌ var.add forbidden in content
+- ❌ Production cannot modify DSL / Schema
+- ❌ JIRA is NOT SSOT
+
+System Status:
+- Schema: Stable
+- Engine: Stable
+- Validation: PASS
+- Evolution Mode: CLOSED (D.4 pending)
+
+Next Focus:
+ Phase D.4 preparation:
+- registry–schema alignment
+- DSL naming normalization
+- coverage expansion
+
 ## Version Anchoring
 
 Engine Version: 1.0.0  
@@ -212,6 +245,7 @@ When using this snapshot:
    - Capability awareness
    - constraint enforcement
 4. If governance state and code state diverge, PROJECT_STATE.json takes precedence
+5. Do NOT treat this file as modification authority
 
 ---
 

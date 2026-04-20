@@ -1036,3 +1036,292 @@ JIRA 不屬於 SSOT。
 
 
 ---
+
+好，這一步我直接幫你做到**可落地、可寫入、可執行**的正式版本。
+以下內容你可以**直接貼進 `design_decision_log.md`**。
+
+---
+
+# 📄 DD-022 – Governance Layer Normalization & Structure Alignment
+
+## Status
+
+Accepted
+
+## Date
+
+2026-04-20
+
+## Impact
+
+High
+
+## Scope
+
+* 00_context（Governance Layer）
+* 03_data（Structure Extension – registries）
+* GOVERNANCE_INDEX.md（Navigation Alignment）
+
+---
+
+# 1. Context（背景）
+
+在 Phase D.3 完成後，專案進入 D.4 準備階段，
+透過 NotebookLM Drift Audit 發現以下問題：
+
+---
+
+## 1.1 Naming Drift（命名不一致）
+
+* `PROJECT_STATE.json` 採 Canonical Uppercase
+* `Project_Context_v1_bootstrap.json` 採 mixed naming + version suffix
+* `Project_Soul.json` 採 PascalCase
+
+👉 導致：
+
+* AI 難以辨識 authority file
+* 增加跨對話 context drift 風險
+
+---
+
+## 1.2 Structure Drift（結構未對齊）
+
+* `03_data/registries/` 已實際存在
+* 但未被 `PROJECT_STRUCTURE.md` 定義
+
+👉 屬於：
+
+
+Structure SSOT 與實體結構不一致
+
+
+---
+
+## 1.3 Navigation 不一致（讀取層優化需求）
+
+* Snapshot 已加入 `AI Quick Context`
+* 但 GOVERNANCE_INDEX 尚未反映「快速初始化層」
+
+👉 導致：
+
+* INIT_SOP 與實際使用模式略有偏差
+
+---
+
+# 2. Decision（決策）
+
+本 DD 定義三項治理演進：
+
+---
+
+# 2.1 Governance Naming Normalization（命名標準化）
+
+### Decision
+
+將 Governance Layer JSON 檔案統一為：
+
+
+CANONICAL UPPERCASE + snake_case
+
+
+---
+
+### Rename Mapping
+
+
+Project_Context_v1_bootstrap.json → PROJECT_CONTEXT.json
+Project_Soul.json                → PROJECT_SOUL.json
+
+
+---
+
+### Rules
+
+1. ❌ 禁止 version suffix（如 v1, v2）
+2. ❌ 禁止 PascalCase / mixedCase
+3. ✔ 統一使用：
+
+   * `PROJECT_*`
+   * `UPPERCASE_WITH_UNDERSCORE`
+
+---
+
+### Rationale
+
+* 強化 AI 對「authority file」辨識
+* 降低 naming drift
+* 對齊 `PROJECT_STATE.json`
+
+---
+
+# 2.2 Structure Extension（registries 正式納入）
+
+### Decision
+
+正式將以下目錄納入 Structure SSOT：
+
+
+03_data/
+  registries/
+
+
+---
+
+### Definition
+
+
+registries = cross-entity mapping / lookup layer
+
+
+用途：
+
+* DSL registry
+* effect mapping
+* future schema-driven injection
+
+---
+
+### Constraint
+
+* 不改變既有 content contract
+* 不影響 loader 行為
+* 不影響 engine runtime
+
+---
+
+### Rationale
+
+* registry 已在 Phase D.3 實際使用
+* 屬於 Schema–Data 中介層
+* 為 D.4（Registry–Schema Sync）預備
+
+---
+
+# 2.3 Navigation Layer Alignment（讀取層對齊）
+
+### Decision
+
+將以下概念正式納入治理：
+
+
+AI Quick Context = Startup Layer
+
+
+---
+
+### Classification Update
+
+| Layer               | Files                                       |
+| ------------------- | ------------------------------------------- |
+| Core Governance     | PROJECT_STATE.json / PROJECT_STRUCTURE.md   |
+| Decision History    | design_decision_log.md                      |
+| Navigation Layer    | GOVERNANCE_INDEX.md / AI_COLLAB_INIT_SOP.md |
+| Startup Layer (NEW) | PROJECT_STATE_SNAPSHOT.md (Quick Context)   |
+
+---
+
+### Rule
+
+
+Startup Layer = 快速初始化（非 authority）
+
+
+---
+
+### Rationale
+
+* 對齊 INIT_SOP 的 minimal startup strategy
+* 降低 token 成本
+* 提高 AI 初始化穩定性
+
+---
+
+# 3. Implementation（實作步驟）
+
+---
+
+## Step 1 – 檔名調整
+
+git mv 00_context/Project_Context_v1_bootstrap.json 00_context/PROJECT_CONTEXT.json
+git mv 00_context/Project_Soul.json 00_context/PROJECT_SOUL.json
+
+---
+
+## Step 2 – 更新 PROJECT_STRUCTURE.md
+
+新增：
+
+03_data/
+  registries/
+
+---
+
+## Step 3 – 更新 GOVERNANCE_INDEX.md
+
+新增：
+
+Startup Layer:
+- PROJECT_STATE_SNAPSHOT.md (AI Quick Context)
+
+---
+
+## Step 4 – 更新 PROJECT_STATE.json
+
+在 `notes` 或 `governance_extensions` 補：
+
+"DD-022 established: Governance Naming + Structure Alignment + Startup Layer introduction"
+
+---
+
+## Step 5 – Drift Audit（驗證）
+
+使用 NotebookLM 檢查：
+
+* structure alignment
+* naming consistency
+* SSOT integrity
+
+---
+
+# 4. Constraints（限制）
+
+* ❌ 不修改 schema（Spec 1.3.0 保持）
+* ❌ 不修改 engine
+* ❌ 不修改 content JSON
+* ❌ 不改變 workflow（DD-021）
+
+---
+
+# 5. Consequences（影響）
+
+---
+
+## Positive
+
+* 消除 naming drift
+* 修復 structure SSOT 不一致
+* 強化 AI 初始化穩定性
+* 為 Phase D.4 建立基礎
+
+---
+
+## Trade-off
+
+* 需要一次性檔名遷移（git history 變更）
+* GOVERNANCE_INDEX 需同步維護
+
+---
+
+# 6. Final State（完成後狀態）
+
+✔ Naming fully canonical
+✔ Structure fully aligned
+✔ Startup layer established
+✔ Ready for Phase D.4
+
+## Approval
+
+Approved by: Governance (User)
+Effective Date: 2026-04-20
+
+---
