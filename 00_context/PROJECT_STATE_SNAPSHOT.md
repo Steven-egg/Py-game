@@ -8,10 +8,10 @@
 
 ## AI Quick Context (Startup Summary)
 
-Phase: D.3 Complete  
-Spec: 1.3.0  
+Phase: D.4 Active  
+Spec: 1.4.0   
 Structure: Locked (1.2.0)  
-Governance Mode: Lock + Controlled Evolution  
+Governance Mode: Evolution Active  
 
 Authority:
 - State SSOT → PROJECT_STATE.json
@@ -42,17 +42,17 @@ Next Focus:
 ## Version Anchoring
 
 Engine Version: 1.0.0  
-Spec Version: 1.3.0  
+Spec Version: 1.4.0
 Structure Version: 1.2.0  
 
-Governance Mode: Lock + Controlled Evolution  
+Governance Mode: Evolution Active  
 Structure Anchor: DD-004  
 
 ---
 
 ## Current Phase
 
-Phase D.3 Complete – Effect DSL Governance Established
+Phase D.4 Active – Registry Schema Evolution
 
 ---
 
@@ -230,7 +230,7 @@ System State:
 - Schema Layer → Stable (Spec 1.3.0)
 - Structure → Locked (1.2.0)
 - Engine → Stable (with internal drift isolated)
-- Evolution Mode → CLOSED (D.4 pending activation)
+- Evolution Mode → ACTIVE (Spec 1.4.0)
 
 ---
 

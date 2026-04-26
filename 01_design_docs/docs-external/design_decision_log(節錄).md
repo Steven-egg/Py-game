@@ -1,315 +1,5 @@
-## DD-016 – Effect Dispatcher Expansion
-- Added: inventory.add/remove, flag.int_add, var.add
-- Engine-only capability expansion (no schema change)
+# Design Decision Log
 
----
-## DD-017
-Date: 2026-04-11  
-Title: AI Snapshot Mirror & Structure Readability Layer Introduction  
-
-Impact: High  
-Scope: AI Governance / Context Layer / Structure Readability / Drift Prevention  
-
----
-
-### Reason
-
-在 Phase C 完成後，專案進入 Phase D 準備階段。
-
-過程中發現以下問題：
-
-1. AI 工具（如 ChatGPT / NotebookLM）無法穩定解析：
-   - `PROJECT_STATE.json`
-   - `tree /f` 原始結構輸出
-
-2. 多對話環境中，AI 容易產生：
-   - State 解讀不一致
-   - Structure 誤判
-   - Architecture Drift（架構漂移）
-
-3. 原有治理機制雖完整（AI_BOOTSTRAP / PROJECT_STATE / DD），
-   但缺乏「AI 可穩定讀取的中介層（Readable Layer）」。
-
----
-
-### Decision
-
-正式引入「AI 可讀治理層（AI-Readable Governance Layer）」：
-
-#### 1. PROJECT_STATE_SNAPSHOT.md（狀態鏡像）
-
-- 作為 `PROJECT_STATE.json` 的 HUMAN / AI 可讀鏡像
-- 僅用於閱讀與推理，不具 SSOT 地位
-- 明確規定：
-  - JSON 為唯一狀態來源
-  - Snapshot 不可反向修改 JSON
-
----
-
-#### 2. AI_BOOTSTRAP.md Snapshot 區段強化
-
-- 在文件最前方加入：
-  - Current Snapshot
-  - Verified Runtime Scope
-  - Structural Constraints
-- 明確標示：
-  - Snapshot 為 mirror
-  - PROJECT_STATE.json 為唯一 authority
-
----
-
-#### 3. PROJECT_STRUCTURE.md（AI 可讀強化）
-
-- 明確定義為 Structure SSOT
-- 新增：
-  - Human + AI readable structure overview
-  - Layer responsibility definition
-  - AI reading protocol（禁止依賴 tree /f）
-- 作為所有 AI 判斷結構的唯一依據
-
----
-
-#### 4. Structure Reading Protocol 建立
-
-AI 在分析專案結構時：
-
-1. 必須優先讀取 `PROJECT_STRUCTURE.md`
-2. 禁止依賴：
-   - tree /f
-   - raw filesystem dump
-3. 發生衝突時：
-   - 以 PROJECT_STRUCTURE.md 為準
-
----
-
-#### 5. Governance Layer 明確化（00_context）
-
-正式確認 `00_context` 為：
-
-- AI 協作控制層
-- 狀態錨點層
-- Drift 防護層
-
-包含：
-
-- AI_BOOTSTRAP.md
-- PROJECT_STATE.json
-- PROJECT_STATE_SNAPSHOT.md
-
----
-
-### Result
-
-建立完整三層治理結構：
-
-PROJECT_STATE.json ← State SSOT
-↓
-PROJECT_STATE_SNAPSHOT.md ← AI-readable mirror
-↓
-AI_BOOTSTRAP.md ← Governance entry
-
-
-並與：
-
-PROJECT_STRUCTURE.md ← Structure SSOT
-design_decision_log.md ← Evolution history
-
-
-形成完整治理閉環（Governance Loop）。
-
----
-
-### Impact
-
-- 消除 AI 無法解析 JSON / tree 結構問題
-- 顯著降低 Architecture Drift 風險
-- 建立 deterministic AI 協作行為
-- 強化多對話一致性
-- 不引入新的 SSOT（避免分裂）
-
----
-
-### Constraints
-
-- Snapshot 不得取代 JSON
-- 不得新增獨立治理檔（如 AI_COLLAB_PROTOCOL.md）
-- 所有結構變更仍需 DD 流程
-- 不啟動 Evolution Mode（本決策屬治理優化）
-
----
-
-## DD-018
-Date: 2026-04-11
-Title: Phase D.1 Runtime Location Context 與 Interactive CLI Loop 導入
-
-Impact: Mid
-Scope: 05_engine/cli_mvl.py、05_engine/quest_runtime.py、05_engine/location_runtime.py
-
-Reason:
-Phase D 的目標是先驗證 World / Location context layer 的最小可行形態，
-且必須在不修改 Schema、不修改 Loader、不變更專案結構的前提下完成。
-
-原本 CLI 採單次 subcommand 模式，
-無法在同一個 session 內持續保留 runtime-only location state，
-因此無法自然驗證：
-- wrong location -> block
-- correct location -> allow
-
-同時，Quest 完成條件雖已由 Condition evaluator 驗證，
-但尚未具備 context-aware action gating 能力。
-
-Decision:
-- 導入 interactive CLI loop，取代原本單次命令式操作
-- 新增 runtime-only location context（session-scoped）
-- 新增 location_runtime.py，提供：
-  - valid locations scaffold
-  - current_location runtime context
-  - engine-side quest completion gate
-- CLI 新增指令：
-  - where
-  - locations
-  - move <location_id>
-- QuestRuntime.check_complete(...) 擴充 runtime_context 參數
-- 在 complete_condition / legacy objectives 通過後，統一接入 check_location_gate(...)
-- location gate 採 engine-side overlay rule，不進 schema、不進 content JSON
-
-Validation:
-已驗證以下行為：
-1. 完成條件未滿足時，仍由既有 condition system 優先阻擋
-2. 完成條件滿足但位置錯誤時，completion 被 location gate 阻擋
-3. 完成條件滿足且位置正確時，任務可正常完成並套用 effects
-4. Save / completed_ids / reward dispatch 流程維持穩定
-5. 未引入 schema change / loader change / structure change
-
-Result:
-- Phase D.1 完成
-- Engine 開始具備最小世界位置語境（location-aware runtime）
-- 為後續 D.2（location persistence / action gate expansion / world layer evaluation）建立基礎
-
----
-
-
-## DD-019
-Date: 2026-04-12
-Title: Phase D.2 Location Persistence via save.game_state.current_location
-
-Impact: Mid
-Scope: 02_specs/schema/save.schema.json、05_engine/cli_mvl.py、05_engine/save_manager.py、05_engine/location_runtime.py
-
-Reason:
-Phase D.1 已完成 runtime-only location context 驗證，
-確認 engine 已具備最小 location-aware behavior gate，
-但 current_location 僅存在於 session runtime context，
-重啟 CLI 或 reload 後會回到預設值，無法跨 session 持續保存位置狀態。
-
-此限制造成以下問題：
-1. 地理位置無法成為持久化存檔狀態的一部分。
-2. location gate 雖可作用於 completion flow，但無法跨 session 延續。
-3. 後續若擴張 accept gate / event gate / action gate，將持續依賴 runtime-only overlay，增加狀態漂移風險。
-
-因此，Phase D.2 採用最小範圍演進策略，
-將 current_location 從 runtime-only context 提升為 save-state 的持久化欄位，
-但不引入正式 world/location schema，也不修改 content layer 或 loader contract。
-
-Decision:
-- 正式進入 Evolution Mode（Spec Version 1.2.0 → 1.3.0）
-- 不新增 `location.schema.json`
-- 不新增 `world.schema.json`
-- 不修改 `03_data` 內容格式
-- 不修改 ContentLoader 行為
-- 僅於 `save.schema.json` 的 `game_state` 下新增：
-  - `current_location: string`
-- `current_location` 預設值定為 `start_village`
-- `current_location` 不列入 `game_state.required`，以維持舊存檔向後相容
-- `cli_mvl.py` 啟動與 reload 時，runtime_context 改由 `game_state["current_location"]` 回填
-- `move <location_id>` 成功後，除更新 runtime_context 外，必須同步寫入 `game_state["current_location"]`
-- `save_manager.py` 升級至與 `save.schema.json` 對齊的新 save payload 格式：
-  - `save_schema`
-  - `engine_version`
-  - `content_manifest_hash`
-  - `active_quest`
-  - `game_state`
-  - `completed_ids`
-- 舊存檔若缺少 `current_location` 或新 metadata 欄位，load 時自動補預設值並允許 self-healing write-back
-
-Single Writer Rule:
-- `game_state["current_location"]` 為持久化 SSOT
-- `runtime_context["current_location"]` 僅為 session mirror / cache
-- engine 不得讓 runtime_context 成為獨立真實來源
-
-Validation:
-已完成以下驗證：
-1. 啟動 CLI 時，runtime_context 可由 `game_state.current_location` 正確回填
-2. `move forest_edge` 後，`game_state` 與 `runtime_context` 皆同步更新
-3. `save` 後 `slot_d2_test.json` 內容符合新 save payload 格式
-4. `reload` 後位置不再重置為預設值，而是正確回填存檔位置
-5. 已驗證 `start_village ↔ forest_edge` 往返切換、存檔、重載後皆維持正確位置
-6. 新 save 檔內容確認如下結構：
-   - `save_schema`
-   - `engine_version`
-   - `content_manifest_hash`
-   - `active_quest`
-   - `game_state.current_location`
-   - `completed_ids`
-
-Result:
-- Phase D.2 的核心位置持久化已完成
-- location state 正式納入 save-state SSOT
-- CLI 已具備跨 session 的位置連續性
-- save payload 已與 `save.schema.json` 對齊
-- 為後續 accept / event / action flow 的 location gating 擴張建立持久化基礎
-- 未引入 structure change
-- 未引入 loader change
-- 未引入 content contract change
-
----
-
----
-
-### Evolution Closure – Phase D.2
-
-Status: Exiting Evolution Mode
-
-Evolution Summary:
-- Spec Version: 1.2.0 → 1.3.0
-- Structure Version: 1.2.0 (UNCHANGED)
-- Engine Version: 1.0.0 (UNCHANGED)
-
-Scope of Evolution:
-- save.schema.json extended (current_location added)
-- cli_mvl.py updated (persistent location sync + reload restore)
-- save_manager.py updated (new save payload alignment)
-- runtime_context redefined as mirror of persistent state
-
-Governance Compliance:
-- No structure changes introduced
-- No loader behavior modified
-- No content layer contract changed
-- All schema evolution executed via Design Decision (DD-019)
-- No cross-layer contamination detected
-
-Validation:
-- CLI persistence loop verified (move → save → reload → restore)
-- Bidirectional location switching validated (start_village ↔ forest_edge)
-- Save payload verified against save.schema.json
-- Backward compatibility verified via load-time normalization
-- MVL Protocol regression completed under Spec 1.3.0
-
-Final State:
-- Location persistence integrated into State SSOT
-- runtime_context downgraded to session mirror
-- Single Writer Rule enforced (game_state as source of truth)
-
-Conclusion:
-Phase D.2 is COMPLETE.
-Evolution Mode is now CLOSED.
-System returns to Lock + Controlled Evolution baseline.
-
----
-
-以下為可直接寫入 `design_decision_log.md` 的正式版本（精簡且符合既有 DD 格式）：
-
----
 
 ## DD-020
 
@@ -476,7 +166,8 @@ DD-020 將 Effect DSL 從「實作導向能力集合」提升為：
 
 ---
 
-# 📄 DD-021 – AI Collaboration Workflow Governance
+
+# DD-021 – AI Collaboration Workflow Governance
 
 ## Status
 Accepted
@@ -636,5 +327,504 @@ JIRA 不屬於 SSOT。
 本決策為 Phase D.4 啟動前之治理基礎，  
 後續 Evolution Mode 啟動須遵循本規則執行。
 
+
+---
+
+好，這一步我直接幫你做到**可落地、可寫入、可執行**的正式版本。
+以下內容你可以**直接貼進 `design_decision_log.md`**。
+
+---
+
+# 📄 DD-022 – Governance Layer Normalization & Structure Alignment
+
+## Status
+
+Accepted
+
+## Date
+
+2026-04-20
+
+## Impact
+
+High
+
+## Scope
+
+* 00_context（Governance Layer）
+* 03_data（Structure Extension – registries）
+* GOVERNANCE_INDEX.md（Navigation Alignment）
+
+---
+
+## 1. Context（背景）
+
+在 Phase D.3 完成後，專案進入 D.4 準備階段，
+透過 NotebookLM Drift Audit 發現以下問題：
+
+---
+
+### 1.1 Naming Drift（命名不一致）
+
+* `PROJECT_STATE.json` 採 Canonical Uppercase
+* `Project_Context_v1_bootstrap.json` 採 mixed naming + version suffix
+* `Project_Soul.json` 採 PascalCase
+
+👉 導致：
+
+* AI 難以辨識 authority file
+* 增加跨對話 context drift 風險
+
+---
+
+### 1.2 Structure Drift（結構未對齊）
+
+* `03_data/registries/` 已實際存在
+* 但未被 `PROJECT_STRUCTURE.md` 定義
+
+👉 屬於：
+
+
+Structure SSOT 與實體結構不一致
+
+
+---
+
+### 1.3 Navigation 不一致（讀取層優化需求）
+
+* Snapshot 已加入 `AI Quick Context`
+* 但 GOVERNANCE_INDEX 尚未反映「快速初始化層」
+
+👉 導致：
+
+* INIT_SOP 與實際使用模式略有偏差
+
+---
+
+## 2. Decision（決策）
+
+本 DD 定義三項治理演進：
+
+---
+
+## 2.1 Governance Naming Normalization（命名標準化）
+
+### Decision
+
+將 Governance Layer JSON 檔案統一為：
+
+
+CANONICAL UPPERCASE + snake_case
+
+
+---
+
+### Rename Mapping
+
+
+Project_Context_v1_bootstrap.json → PROJECT_CONTEXT.json
+Project_Soul.json                → PROJECT_SOUL.json
+
+
+---
+
+### Rules
+
+1. ❌ 禁止 version suffix（如 v1, v2）
+2. ❌ 禁止 PascalCase / mixedCase
+3. ✔ 統一使用：
+
+   * `PROJECT_*`
+   * `UPPERCASE_WITH_UNDERSCORE`
+
+---
+
+### Rationale
+
+* 強化 AI 對「authority file」辨識
+* 降低 naming drift
+* 對齊 `PROJECT_STATE.json`
+
+---
+
+## 2.2 Structure Extension（registries 正式納入）
+
+### Decision
+
+正式將以下目錄納入 Structure SSOT：
+
+
+03_data/
+  registries/
+
+
+---
+
+### Definition
+
+
+registries = cross-entity mapping / lookup layer
+
+
+用途：
+
+* DSL registry
+* effect mapping
+* future schema-driven injection
+
+---
+
+### Constraint
+
+* 不改變既有 content contract
+* 不影響 loader 行為
+* 不影響 engine runtime
+
+---
+
+### Rationale
+
+* registry 已在 Phase D.3 實際使用
+* 屬於 Schema–Data 中介層
+* 為 D.4（Registry–Schema Sync）預備
+
+---
+
+## 2.3 Navigation Layer Alignment（讀取層對齊）
+
+### Decision
+
+將以下概念正式納入治理：
+
+
+AI Quick Context = Startup Layer
+
+
+---
+
+### Classification Update
+
+| Layer               | Files                                       |
+| ------------------- | ------------------------------------------- |
+| Core Governance     | PROJECT_STATE.json / PROJECT_STRUCTURE.md   |
+| Decision History    | design_decision_log.md                      |
+| Navigation Layer    | GOVERNANCE_INDEX.md / AI_COLLAB_INIT_SOP.md |
+| Startup Layer (NEW) | PROJECT_STATE_SNAPSHOT.md (Quick Context)   |
+
+---
+
+### Rule
+
+
+Startup Layer = 快速初始化（非 authority）
+
+
+---
+
+### Rationale
+
+* 對齊 INIT_SOP 的 minimal startup strategy
+* 降低 token 成本
+* 提高 AI 初始化穩定性
+
+---
+
+## 3. Implementation（實作步驟）
+
+---
+
+### Step 1 – 檔名調整
+
+git mv 00_context/Project_Context_v1_bootstrap.json 00_context/PROJECT_CONTEXT.json
+git mv 00_context/Project_Soul.json 00_context/PROJECT_SOUL.json
+
+---
+
+### Step 2 – 更新 PROJECT_STRUCTURE.md
+
+新增：
+
+03_data/
+  registries/
+
+---
+
+### Step 3 – 更新 GOVERNANCE_INDEX.md
+
+新增：
+
+Startup Layer:
+- PROJECT_STATE_SNAPSHOT.md (AI Quick Context)
+
+---
+
+### Step 4 – 更新 PROJECT_STATE.json
+
+在 `notes` 或 `governance_extensions` 補：
+
+"DD-022 established: Governance Naming + Structure Alignment + Startup Layer introduction"
+
+---
+
+### Step 5 – Drift Audit（驗證）
+
+使用 NotebookLM 檢查：
+
+* structure alignment
+* naming consistency
+* SSOT integrity
+
+---
+
+## 4. Constraints（限制）
+
+* ❌ 不修改 schema（Spec 1.3.0 保持）
+* ❌ 不修改 engine
+* ❌ 不修改 content JSON
+* ❌ 不改變 workflow（DD-021）
+
+---
+
+## 5. Consequences（影響）
+
+---
+
+### Positive
+
+* 消除 naming drift
+* 修復 structure SSOT 不一致
+* 強化 AI 初始化穩定性
+* 為 Phase D.4 建立基礎
+
+---
+
+### Trade-off
+
+* 需要一次性檔名遷移（git history 變更）
+* GOVERNANCE_INDEX 需同步維護
+
+---
+
+## 6. Final State（完成後狀態）
+
+✔ Naming fully canonical
+✔ Structure fully aligned
+✔ Startup layer established
+✔ Ready for Phase D.4
+
+### Approval
+
+Approved by: Governance (User)
+Effective Date: 2026-04-20
+
+---
+
+# 📄 DD-023 – Registry Schema Introduction (Contractization Decision)
+
+## Status
+
+Accepted
+
+## Date
+
+2026-04-22
+
+## Impact
+
+High
+
+## Scope
+
+* 02_specs/schema（新增 registry schema）
+* 03_data/registries（正式 contract 對齊）
+* DSL Governance（DD-020）
+* Validation Layer（MVL extension）
+
+---
+
+## 1. Context（背景）
+
+在 Phase D.3 完成後，系統已建立：
+
+* DSL Governance（DD-020）
+* AI Workflow Governance（DD-021）
+* Structure Alignment（DD-022）
+
+並完成：
+
+> Registry Schema Spec（Design Layer）
+
+該設計已明確：
+
+* registry 為 **cross-entity mapping layer**
+* 僅負責 **canonical naming alignment / governance annotation**
+* 不涉及 DSL 定義 / runtime 行為
+
+---
+
+## 2. Decision（最終決策）
+
+選擇：
+
+> ✅ **Option A – Adopt**
+
+---
+
+## 3. Contract Introduction
+
+正式決定：
+
+### 3.1 新增 Schema Contract
+
+在以下位置新增：
+
+02_specs/schema/registry.schema.json
+
+---
+
+### 3.2 Registry 定位（固定）
+
+Registry 被正式定義為：
+
+> **Schema-aligned mapping layer（非語義層 / 非執行層）**
+
+---
+
+### 3.3 DSL Governance 對齊（強制）
+
+* ❌ registry 不得定義 DSL
+* ❌ registry 不得成為 naming authority
+* ✔ schema（02_specs）仍為唯一 DSL contract
+
+---
+
+### 3.4 Coverage Role（限制）
+
+registry：
+
+* ✔ 可標記 coverage 狀態
+* ❌ 不得決定可用性（仍由 schema + behavior 決定）
+
+---
+
+## 4. 🔴 Evolution Mode 啟動（強制）
+
+Entering Evolution Mode (Spec Version 1.3.0 → 1.4.0)
+
+---
+
+## 5. Evolution Scope（演進範圍）
+
+本次演進僅包含：
+
+### ✔ Schema 層
+
+* 新增 `registry.schema.json`
+
+---
+
+### ✔ Contract 層
+
+* registry 正式納入 schema contract
+* 可被 validation pipeline 使用
+
+---
+
+### ❌ 不包含
+
+* 不修改既有 schema（effect / condition / quest 等）
+* 不修改 engine
+* 不修改 content JSON
+
+---
+
+## 6. Constraints（限制）
+
+---
+
+### DSL（DD-020）
+
+* canonical naming → schema authority
+* flag.int_add → forbidden
+* var.add → engine-only（禁止進 content）
+* 必須通過 schema + behavior coverage
+
+---
+
+### Structure（DD-004 / DD-022）
+
+* schema 僅能存在於 `02_specs/schema`
+* registry 僅存在於 `03_data/registries`
+* 不得新增其他結構
+
+---
+
+### Workflow（DD-021）
+
+* Governance 不實作 runtime
+* Production 不得修改 DSL / schema 定義
+* JIRA 不得承載 schema / DSL
+
+---
+
+## 7. Implementation Plan（高層）
+
+（仍屬 Governance 指導，不是實作）
+
+### Step 1
+
+定義 `registry.schema.json`（依 Registry Schema Spec）
+
+### Step 2
+
+建立最小 registry fixture（測試用）
+
+### Step 3
+
+擴充 MVL validation：
+
+* registry schema validation
+* 基本結構驗證
+
+---
+
+## 8. Consequences（影響）
+
+### Positive
+
+* ✔ DSL 對齊集中化
+* ✔ registry 可進入 validation pipeline
+* ✔ D.4「registry–schema sync」正式落地
+
+---
+
+### Trade-off
+
+* ⚠️ 增加 schema complexity
+* ⚠️ 增加 validation 維護成本
+
+---
+
+## 9. Version Anchor
+
+* Previous Spec Version: **1.3.0**
+* New Spec Version: **1.4.0**
+* Structure Version: **1.2.0（unchanged）**
+* Engine Version: **1.0.0（unchanged）**
+
+---
+
+## 10. Final State
+
+✔ registry 成為 schema contract 一部分
+✔ Evolution Mode 已啟動
+✔ 可進入 Production Schema 實作階段
+
+---
+
+## Approval
+
+* Approved by: Governance (User)
+* Effective Date: 2026-04-22
 
 ---

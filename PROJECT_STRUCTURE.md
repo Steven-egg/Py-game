@@ -9,7 +9,7 @@ This document defines the official directory structure of the project.
 
 # 1. Structure Overview (Human + AI Readable)
 
-```text
+
 Project_RPG/
 │
 ├── 00_context/        ← Governance Layer (AI Control Tower)
@@ -19,7 +19,7 @@ Project_RPG/
 ├── 04_assets/         ← Static Resources (images/audio/etc.)
 ├── 05_engine/         ← Runtime Implementation Layer (Python)
 └── tools/             ← Utility Scripts
-```
+
 
 ---
 
@@ -78,14 +78,13 @@ Purpose:
 
 Structure:
 
-```text
 02_specs/
 ├── schema/
 │   ├── *.schema.json
 │
 ├── engine_contract.md
 └── mvl_protocol.md
-```
+
 
 Rules:
 
@@ -104,7 +103,6 @@ Purpose:
 
 Structure:
 
-```text
 03_data/
 ├── monsters/
 ├── items/
@@ -112,8 +110,12 @@ Structure:
 ├── dungeons/
 ├── events/
 ├── dialogues/
-└── registries/
-```
+└── registries/  <-- (DD-022 新增)
+
+registries:
+- cross-entity mapping layer
+- used for DSL / effect / future schema alignment
+
 
 Rules:
 
@@ -151,7 +153,6 @@ Purpose:
 
 Structure:
 
-```text
 05_engine/
 ├── cli_mvl.py
 ├── content_loader.py
@@ -160,7 +161,7 @@ Structure:
 ├── save_manager.py
 ├── validation/
 └── save/
-```
+
 
 Rules:
 

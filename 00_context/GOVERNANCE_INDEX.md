@@ -39,6 +39,29 @@
 
 ---
 
+## Startup Layer (Token Optimized)
+
+Purpose:
+- Provide fast AI initialization context
+- Reduce token usage during new conversations
+- Avoid overloading Governance context
+
+Primary File:
+- PROJECT_STATE_SNAPSHOT.md
+
+Characteristics:
+- Contains AI Quick Context (startup summary)
+- Human-readable mirror of PROJECT_STATE.json
+- NOT a Source of Truth
+
+Usage Rule:
+- Use for initial orientation only
+- Always resolve authority via:
+  - PROJECT_STATE.json (State SSOT)
+  - PROJECT_STRUCTURE.md (Structure SSOT)
+
+---
+
 ## 4. Reading Order by Scenario
 
 ---

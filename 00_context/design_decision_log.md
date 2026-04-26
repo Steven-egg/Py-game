@@ -1064,14 +1064,14 @@ High
 
 ---
 
-# 1. Context（背景）
+## 1. Context（背景）
 
 在 Phase D.3 完成後，專案進入 D.4 準備階段，
 透過 NotebookLM Drift Audit 發現以下問題：
 
 ---
 
-## 1.1 Naming Drift（命名不一致）
+### 1.1 Naming Drift（命名不一致）
 
 * `PROJECT_STATE.json` 採 Canonical Uppercase
 * `Project_Context_v1_bootstrap.json` 採 mixed naming + version suffix
@@ -1084,7 +1084,7 @@ High
 
 ---
 
-## 1.2 Structure Drift（結構未對齊）
+### 1.2 Structure Drift（結構未對齊）
 
 * `03_data/registries/` 已實際存在
 * 但未被 `PROJECT_STRUCTURE.md` 定義
@@ -1097,7 +1097,7 @@ Structure SSOT 與實體結構不一致
 
 ---
 
-## 1.3 Navigation 不一致（讀取層優化需求）
+### 1.3 Navigation 不一致（讀取層優化需求）
 
 * Snapshot 已加入 `AI Quick Context`
 * 但 GOVERNANCE_INDEX 尚未反映「快速初始化層」
@@ -1108,13 +1108,13 @@ Structure SSOT 與實體結構不一致
 
 ---
 
-# 2. Decision（決策）
+## 2. Decision（決策）
 
 本 DD 定義三項治理演進：
 
 ---
 
-# 2.1 Governance Naming Normalization（命名標準化）
+## 2.1 Governance Naming Normalization（命名標準化）
 
 ### Decision
 
@@ -1154,7 +1154,7 @@ Project_Soul.json                → PROJECT_SOUL.json
 
 ---
 
-# 2.2 Structure Extension（registries 正式納入）
+## 2.2 Structure Extension（registries 正式納入）
 
 ### Decision
 
@@ -1197,7 +1197,7 @@ registries = cross-entity mapping / lookup layer
 
 ---
 
-# 2.3 Navigation Layer Alignment（讀取層對齊）
+## 2.3 Navigation Layer Alignment（讀取層對齊）
 
 ### Decision
 
@@ -1236,18 +1236,18 @@ Startup Layer = 快速初始化（非 authority）
 
 ---
 
-# 3. Implementation（實作步驟）
+## 3. Implementation（實作步驟）
 
 ---
 
-## Step 1 – 檔名調整
+### Step 1 – 檔名調整
 
 git mv 00_context/Project_Context_v1_bootstrap.json 00_context/PROJECT_CONTEXT.json
 git mv 00_context/Project_Soul.json 00_context/PROJECT_SOUL.json
 
 ---
 
-## Step 2 – 更新 PROJECT_STRUCTURE.md
+### Step 2 – 更新 PROJECT_STRUCTURE.md
 
 新增：
 
@@ -1256,7 +1256,7 @@ git mv 00_context/Project_Soul.json 00_context/PROJECT_SOUL.json
 
 ---
 
-## Step 3 – 更新 GOVERNANCE_INDEX.md
+### Step 3 – 更新 GOVERNANCE_INDEX.md
 
 新增：
 
@@ -1265,7 +1265,7 @@ Startup Layer:
 
 ---
 
-## Step 4 – 更新 PROJECT_STATE.json
+### Step 4 – 更新 PROJECT_STATE.json
 
 在 `notes` 或 `governance_extensions` 補：
 
@@ -1273,7 +1273,7 @@ Startup Layer:
 
 ---
 
-## Step 5 – Drift Audit（驗證）
+### Step 5 – Drift Audit（驗證）
 
 使用 NotebookLM 檢查：
 
@@ -1283,7 +1283,7 @@ Startup Layer:
 
 ---
 
-# 4. Constraints（限制）
+## 4. Constraints（限制）
 
 * ❌ 不修改 schema（Spec 1.3.0 保持）
 * ❌ 不修改 engine
@@ -1292,11 +1292,11 @@ Startup Layer:
 
 ---
 
-# 5. Consequences（影響）
+## 5. Consequences（影響）
 
 ---
 
-## Positive
+### Positive
 
 * 消除 naming drift
 * 修復 structure SSOT 不一致
@@ -1305,23 +1305,233 @@ Startup Layer:
 
 ---
 
-## Trade-off
+### Trade-off
 
 * 需要一次性檔名遷移（git history 變更）
 * GOVERNANCE_INDEX 需同步維護
 
 ---
 
-# 6. Final State（完成後狀態）
+## 6. Final State（完成後狀態）
 
 ✔ Naming fully canonical
 ✔ Structure fully aligned
 ✔ Startup layer established
 ✔ Ready for Phase D.4
 
-## Approval
+### Approval
 
 Approved by: Governance (User)
 Effective Date: 2026-04-20
+
+---
+
+# 📄 DD-023 – Registry Schema Introduction (Contractization Decision)
+
+## Status
+
+Accepted
+
+## Date
+
+2026-04-22
+
+## Impact
+
+High
+
+## Scope
+
+* 02_specs/schema（新增 registry schema）
+* 03_data/registries（正式 contract 對齊）
+* DSL Governance（DD-020）
+* Validation Layer（MVL extension）
+
+---
+
+## 1. Context（背景）
+
+在 Phase D.3 完成後，系統已建立：
+
+* DSL Governance（DD-020）
+* AI Workflow Governance（DD-021）
+* Structure Alignment（DD-022）
+
+並完成：
+
+> Registry Schema Spec（Design Layer）
+
+該設計已明確：
+
+* registry 為 **cross-entity mapping layer**
+* 僅負責 **canonical naming alignment / governance annotation**
+* 不涉及 DSL 定義 / runtime 行為
+
+---
+
+## 2. Decision（最終決策）
+
+選擇：
+
+> ✅ **Option A – Adopt**
+
+---
+
+## 3. Contract Introduction
+
+正式決定：
+
+### 3.1 新增 Schema Contract
+
+在以下位置新增：
+
+02_specs/schema/registry.schema.json
+
+---
+
+### 3.2 Registry 定位（固定）
+
+Registry 被正式定義為：
+
+> **Schema-aligned mapping layer（非語義層 / 非執行層）**
+
+---
+
+### 3.3 DSL Governance 對齊（強制）
+
+* ❌ registry 不得定義 DSL
+* ❌ registry 不得成為 naming authority
+* ✔ schema（02_specs）仍為唯一 DSL contract
+
+---
+
+### 3.4 Coverage Role（限制）
+
+registry：
+
+* ✔ 可標記 coverage 狀態
+* ❌ 不得決定可用性（仍由 schema + behavior 決定）
+
+---
+
+## 4. 🔴 Evolution Mode 啟動（強制）
+
+Entering Evolution Mode (Spec Version 1.3.0 → 1.4.0)
+
+---
+
+## 5. Evolution Scope（演進範圍）
+
+本次演進僅包含：
+
+### ✔ Schema 層
+
+* 新增 `registry.schema.json`
+
+---
+
+### ✔ Contract 層
+
+* registry 正式納入 schema contract
+* 可被 validation pipeline 使用
+
+---
+
+### ❌ 不包含
+
+* 不修改既有 schema（effect / condition / quest 等）
+* 不修改 engine
+* 不修改 content JSON
+
+---
+
+## 6. Constraints（限制）
+
+---
+
+### DSL（DD-020）
+
+* canonical naming → schema authority
+* flag.int_add → forbidden
+* var.add → engine-only（禁止進 content）
+* 必須通過 schema + behavior coverage
+
+---
+
+### Structure（DD-004 / DD-022）
+
+* schema 僅能存在於 `02_specs/schema`
+* registry 僅存在於 `03_data/registries`
+* 不得新增其他結構
+
+---
+
+### Workflow（DD-021）
+
+* Governance 不實作 runtime
+* Production 不得修改 DSL / schema 定義
+* JIRA 不得承載 schema / DSL
+
+---
+
+## 7. Implementation Plan（高層）
+
+（仍屬 Governance 指導，不是實作）
+
+### Step 1
+
+定義 `registry.schema.json`（依 Registry Schema Spec）
+
+### Step 2
+
+建立最小 registry fixture（測試用）
+
+### Step 3
+
+擴充 MVL validation：
+
+* registry schema validation
+* 基本結構驗證
+
+---
+
+## 8. Consequences（影響）
+
+### Positive
+
+* ✔ DSL 對齊集中化
+* ✔ registry 可進入 validation pipeline
+* ✔ D.4「registry–schema sync」正式落地
+
+---
+
+### Trade-off
+
+* ⚠️ 增加 schema complexity
+* ⚠️ 增加 validation 維護成本
+
+---
+
+## 9. Version Anchor
+
+* Previous Spec Version: **1.3.0**
+* New Spec Version: **1.4.0**
+* Structure Version: **1.2.0（unchanged）**
+* Engine Version: **1.0.0（unchanged）**
+
+---
+
+## 10. Final State
+
+✔ registry 成為 schema contract 一部分
+✔ Evolution Mode 已啟動
+✔ 可進入 Production Schema 實作階段
+
+---
+
+## Approval
+
+* Approved by: Governance (User)
+* Effective Date: 2026-04-22
 
 ---

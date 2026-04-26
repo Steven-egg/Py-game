@@ -1,11 +1,11 @@
 {
   "project_name": "Text RPG Engine",
   "engine_version": "1.0.0",
-  "spec_version": "1.3.0",
+  "spec_version": "1.4.0",
   "structure_version": "1.2.0",
-  "governance_mode": "Lock + Controlled Evolution",
+  "governance_mode": "Evolution Active",
   "structure_anchor": "DD-004",
-  "engine_phase": "Phase D.3 Complete – Effect DSL Governance Established",
+  "engine_phase": "Phase D.4 Active – Registry Schema Evolution",
   "schema_layer": {
     "completed": [
       "common",
@@ -104,7 +104,9 @@
     "AI Collaboration Workflow integrated: Governance / Production / JIRA / NotebookLM role separation active",
     "JIRA strictly task-tracking only (NOT SSOT, NOT design carrier)",
     "NotebookLM designated as SSOT validator for drift detection",
-    "Phase D.4 prepared: Registry–Schema sync + DSL alignment + coverage expansion + workflow governance"
+    "Phase D.4 prepared: Registry–Schema sync + DSL alignment + coverage expansion + workflow governance",
+    "DD-022 established: Governance Naming Normalization + Structure Alignment + Startup Layer introduction",
+    "DD-023 established: Registry Schema Contract + Evolution Mode Activated (Spec 1.4.0)"
   ],
   
   "governance_extensions": {

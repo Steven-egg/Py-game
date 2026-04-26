@@ -1,0 +1,43 @@
+{
+  "registry_type": "effect_registry",
+  "registry_version": "1.4.0",
+  "entries": [
+    {
+      "id": "effect.flag.add_int",
+      "canonical_name": "flag.add_int",
+      "domain": "effect",
+      "status": "allowed",
+      "reason": "Canonical effect name defined by schema contract.",
+      "source_layer": "schema_contract",
+      "coverage_gate": {
+        "schema": true,
+        "behavior": true
+      }
+    },
+    {
+      "id": "effect.flag.int_add",
+      "canonical_name": "flag.int_add",
+      "domain": "effect",
+      "status": "blocked",
+      "reason": "Legacy non-canonical engine mapping. May exist in registry as blocked metadata only.",
+      "source_layer": "legacy_engine_mapping",
+      "replaced_by": "flag.add_int",
+      "coverage_gate": {
+        "schema": false,
+        "behavior": false
+      }
+    },
+    {
+      "id": "effect.var.add",
+      "canonical_name": "var.add",
+      "domain": "effect",
+      "status": "blocked",
+      "reason": "Engine-only capability. Forbidden in content and recorded only as blocked registry metadata.",
+      "source_layer": "engine_internal",
+      "coverage_gate": {
+        "schema": false,
+        "behavior": false
+      }
+    }
+  ]
+}
