@@ -1,10 +1,78 @@
 {
-  "flags": [
-    "flg.kill.slime.count",
-    "flg.kill.wolf.count",
-    "flg.quest.q_main_first_blood.completed",
-    "flg.quest.side.slime_hunt_3.completed",
-    "flg.story.key.obtained_gate_key",
-    "flg.story.npc.met_guard"
+  "registry_type": "flag_registry",
+  "registry_version": "1.4.0",
+  "entries": [
+    {
+      "id": "flag.flg.kill.slime.count",
+      "canonical_name": "flg.kill.slime.count",
+      "domain": "flag",
+      "status": "allowed",
+      "reason": "Migrated from legacy flags registry list.",
+      "source_layer": "data_registry",
+      "coverage_gate": {
+        "schema": true,
+        "behavior": false
+      }
+    },
+    {
+      "id": "flag.flg.kill.wolf.count",
+      "canonical_name": "flg.kill.wolf.count",
+      "domain": "flag",
+      "status": "allowed",
+      "reason": "Migrated from legacy flags registry list.",
+      "source_layer": "data_registry",
+      "coverage_gate": {
+        "schema": true,
+        "behavior": false
+      }
+    },
+    {
+      "id": "flag.flg.quest.q_main_first_blood.completed",
+      "canonical_name": "flg.quest.q_main_first_blood.completed",
+      "domain": "flag",
+      "status": "allowed",
+      "reason": "Migrated from legacy flags registry list.",
+      "source_layer": "data_registry",
+      "coverage_gate": {
+        "schema": true,
+        "behavior": false
+      }
+    },
+    {
+      "id": "flag.flg.quest.side.slime_hunt_3.completed",
+      "canonical_name": "flg.quest.side.slime_hunt_3.completed",
+      "domain": "flag",
+      "status": "allowed",
+      "reason": "Migrated from legacy flags registry list.",
+      "source_layer": "data_registry",
+      "coverage_gate": {
+        "schema": true,
+        "behavior": false
+      }
+    },
+    {
+      "id": "flag.flg.story.key.obtained_gate_key",
+      "canonical_name": "flg.story.key.obtained_gate_key",
+      "domain": "flag",
+      "status": "allowed",
+      "reason": "Migrated from legacy flags registry list.",
+      "source_layer": "data_registry",
+      "coverage_gate": {
+        "schema": true,
+        "behavior": false
+      }
+    },
+    {
+      "id": "flag.flg.story.npc.met_guard",
+      "canonical_name": "flg.story.npc.met_guard",
+      "domain": "flag",
+      "status": "allowed",
+      "reason": "Migrated from legacy flags registry list.",
+      "source_layer": "data_registry",
+      "coverage_gate": {
+        "schema": true,
+        "behavior": false
+      }
+    }
   ]
 }

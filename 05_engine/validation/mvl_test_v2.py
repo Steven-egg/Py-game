@@ -69,7 +69,11 @@ def run_secure_validation():
 
     monster_schema_path = os.path.join(schema_dir, "monster.schema.json")
     item_schema_path = os.path.join(schema_dir, "item.schema.json")
-
+    registry_schema_path = os.path.join(schema_dir, "registry.schema.json")
+    
+    # 載入 registry schema
+    with open(registry_schema_path, "r", encoding="utf-8") as f:
+        registry_schema = json.load(f)
     # 載入 monster schema
     with open(monster_schema_path, "r", encoding="utf-8") as f:
         monster_schema = json.load(f)
@@ -129,6 +133,59 @@ def run_secure_validation():
 
     total_pass += quest_result["pass"]
     total_fail += quest_result["fail"]
+
+    # -----------------------------
+    # Registry (NEW - REG-002)
+    # -----------------------------
+    registry_dir = os.path.join(root, "03_data", "registries")
+
+    def _validate_registry_folder(schema, folder_path):
+        results = {"pass": 0, "fail": 0}
+
+        if not os.path.isdir(folder_path):
+            print(f"⚠️ [SKIP] registry 資料夾不存在：{folder_path}")
+            return results
+
+        files = sorted(
+            fn for fn in os.listdir(folder_path)
+            if fn.lower().endswith(".json")
+        )
+
+        if not files:
+            print(f"⚠️ [SKIP] registry 無 JSON 檔案")
+            return results
+
+        for fn in files:
+            path = os.path.join(folder_path, fn)
+
+            try:
+                with open(path, "r", encoding="utf-8") as f:
+                    instance = json.load(f)
+
+                validate(instance=instance, schema=schema)
+
+                print(f"✅ [PASS] registry@1.4 → {fn}")
+                results["pass"] += 1
+
+            except ValidationError as e:
+                _print_validation_error("registry@1.4", fn, e)
+                results["fail"] += 1
+
+            except Exception as e:
+                print(f"❌ [ERROR] registry@1.4 → {fn}")
+                print(f"    - {str(e)}")
+                results["fail"] += 1
+
+        return results
+
+    registry_result = _validate_registry_folder(
+        registry_schema,
+        registry_dir
+    )
+
+    total_pass += registry_result["pass"]
+    total_fail += registry_result["fail"]
+
 
     # -----------------------------
     # Summary

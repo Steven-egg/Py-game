@@ -1,5 +1,18 @@
 {
-  "vars": [
-    "gold"
+  "registry_type": "var_registry",
+  "registry_version": "1.4.0",
+  "entries": [
+    {
+      "id": "var.gold",
+      "canonical_name": "gold",
+      "domain": "var",
+      "status": "allowed",
+      "reason": "Migrated from legacy vars registry list.",
+      "source_layer": "data_registry",
+      "coverage_gate": {
+        "schema": true,
+        "behavior": false
+      }
+    }
   ]
 }
