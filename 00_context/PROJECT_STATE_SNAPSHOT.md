@@ -38,6 +38,7 @@ Next Focus:
 - registry–schema alignment
 - DSL naming normalization
 - coverage expansion
+- REG-003 completed: registry migration + validation PASS
 
 ## Version Anchoring
 
