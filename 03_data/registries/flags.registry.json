@@ -8,7 +8,7 @@
       "domain": "flag",
       "status": "allowed",
       "reason": "Migrated from legacy flags registry list.",
-      "source_layer": "data_registry",
+      "source_layer": "content_reference",
       "coverage_gate": {
         "schema": true,
         "behavior": false
@@ -20,7 +20,7 @@
       "domain": "flag",
       "status": "allowed",
       "reason": "Migrated from legacy flags registry list.",
-      "source_layer": "data_registry",
+      "source_layer": "content_reference",
       "coverage_gate": {
         "schema": true,
         "behavior": false
@@ -32,7 +32,7 @@
       "domain": "flag",
       "status": "allowed",
       "reason": "Migrated from legacy flags registry list.",
-      "source_layer": "data_registry",
+      "source_layer": "content_reference",
       "coverage_gate": {
         "schema": true,
         "behavior": false
@@ -44,7 +44,7 @@
       "domain": "flag",
       "status": "allowed",
       "reason": "Migrated from legacy flags registry list.",
-      "source_layer": "data_registry",
+      "source_layer": "content_reference",
       "coverage_gate": {
         "schema": true,
         "behavior": false
@@ -56,7 +56,7 @@
       "domain": "flag",
       "status": "allowed",
       "reason": "Migrated from legacy flags registry list.",
-      "source_layer": "data_registry",
+      "source_layer": "content_reference",
       "coverage_gate": {
         "schema": true,
         "behavior": false
@@ -68,7 +68,7 @@
       "domain": "flag",
       "status": "allowed",
       "reason": "Migrated from legacy flags registry list.",
-      "source_layer": "data_registry",
+      "source_layer": "content_reference",
       "coverage_gate": {
         "schema": true,
         "behavior": false

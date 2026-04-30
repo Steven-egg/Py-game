@@ -5,14 +5,11 @@
     {
       "id": "var.gold",
       "canonical_name": "gold",
-      "domain": "var",
+      "domain": "save",
       "status": "allowed",
       "reason": "Migrated from legacy vars registry list.",
-      "source_layer": "data_registry",
-      "coverage_gate": {
-        "schema": true,
-        "behavior": false
-      }
+      "source_layer": "content_reference",
+      "coverage_gate": { "schema": true, "behavior": false }
     }
   ]
 }
