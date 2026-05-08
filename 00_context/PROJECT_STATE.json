@@ -107,7 +107,10 @@
     "Phase D.4 prepared: Registry–Schema sync + DSL alignment + coverage expansion + workflow governance",
     "DD-022 established: Governance Naming Normalization + Structure Alignment + Startup Layer introduction",
     "DD-023 established: Registry Schema Contract + Evolution Mode Activated (Spec 1.4.0)",
-    "REG-003 completed: registry data migrated to spec 1.4.0 and validated (MVL PASS)"
+    "REG-003 completed: registry data migrated to spec 1.4.0 and validated (MVL PASS)",
+    "tools/add_schema_uri.py 已確立為 D.4-C 自動同步工具的原型",
+    "REG-004 completed: Registry–Schema Alignment Audit executed; result identified registry metadata as passive annotation with Governance Ambiguity / Boundary Tension, not Boundary Violation; no schema or registry changes applied."
+    
   ],
   
   "governance_extensions": {

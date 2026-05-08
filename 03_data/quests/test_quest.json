@@ -47,19 +47,19 @@
         }
       },
       {
-        "type": "flag.add_int",
+        "type": "var.add_int",
         "target": {
           "world": "global"
         },
         "params": {
-          "key": "flg.test.phase_c.counter",
-          "delta": 7
+          "key": "var.test.phase_c.counter",
+          "value": 7
         }
       },
       {
         "type": "inventory.remove",
         "target": {
-           "entity_id": "pc.player"
+          "entity_id": "pc.player"
         },
         "params": {
           "item_id": "potion",
@@ -68,5 +68,6 @@
       }
     ],
     "reward_text_key": "txt.quest.main.first_blood.reward"
-  }
+  },
+  "$schema": "02_specs/schema/quest.schema.json"
 }

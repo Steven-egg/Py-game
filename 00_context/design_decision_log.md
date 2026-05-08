@@ -1535,3 +1535,244 @@ Entering Evolution Mode (Spec Version 1.3.0 → 1.4.0)
 * Effective Date: 2026-04-22
 
 ---
+
+
+# 📄 DD-024 – Registry Metadata Governance Contract
+
+## Status
+
+Accepted
+
+## Date
+
+2026-05-01
+
+## Impact
+
+High
+
+## Scope
+
+* 02_specs/schema（registry metadata contract）
+* 03_data/registries（metadata 使用限制）
+* Validation Layer（metadata interpretation）
+* Governance Layer（authority boundary definition）
+
+---
+
+## Reason
+
+在 Phase D.4（Registry Schema Evolution）中，
+
+* registry 已納入 schema contract（DD-023）
+* 並允許包含 metadata / coverage 標記
+
+但 REG-004 Audit 發現：
+
+1. registry metadata 雖為合法存在，但缺乏分類與語義定義
+2. metadata 與 DSL / validation / runtime 的權限邊界未明確
+3. coverage_gate 等欄位具有潛在 authority 誤用風險
+4. passive annotation 與 decision source 未被制度性區分
+
+上述問題本質為：
+
+> **metadata 已存在，但尚未形成可治理的 contract**
+
+需建立統一規則，以防止 metadata 從描述性資訊漂移為決策來源（authority drift）。
+
+---
+
+## Decision
+
+建立 **Registry Metadata Governance Contract**，定義 metadata 的：
+
+* 類型（Type Classification）
+* 使用邊界（Authority Boundary）
+* 合法用途（Allow List）
+* 違規觸發條件（Violation Trigger）
+
+---
+
+### 1. Metadata 定位（強制）
+
+Registry metadata 定義為：
+
+> **Passive Descriptive Annotation（被動描述性註記）**
+
+---
+
+### 2. Metadata 分類（強制）
+
+所有 metadata 必須屬於以下三類：
+
+#### (A) Descriptive Metadata
+
+用途：說明語義或來源
+範例：`reason`, `source_layer`
+
+---
+
+#### (B) Classification Metadata
+
+用途：分類與分群
+範例：`domain`, `status`
+
+---
+
+#### (C) Validation Annotation
+
+用途：記錄驗證狀態（非權威）
+範例：`coverage_gate`
+
+---
+
+#### 禁止類型
+
+不得存在：
+
+* Execution metadata（影響 runtime）
+* Decision metadata（影響 DSL / validation 判定）
+
+---
+
+### 3. Authority Boundary（強制）
+
+Registry metadata 不得用於：
+
+---
+
+#### ❌ DSL Authority
+
+* 定義 DSL
+* 修改 canonical naming
+
+👉 DSL authority 僅來自 schema（DD-020）
+
+---
+
+#### ❌ Behavior Coverage 判定
+
+* 不得用於判定 effect 是否可用
+* 不得作為 Behavior Gate
+
+👉 coverage authority 來自 validation / engine
+
+---
+
+#### ❌ Runtime Input
+
+* 不得進入 engine
+* 不得影響 dispatch / condition
+
+---
+
+#### ❌ Content Decision
+
+* 不得影響 content_manifest
+* 不得作為內容生成或驗證依據
+
+---
+
+### 4. Allow List（唯一允許用途）
+
+Registry metadata 僅允許：
+
+* Documentation（說明 / trace）
+* Tooling（filter / display / visualization）
+* Debug / Audit context（非決策）
+
+---
+
+### 5. Violation Trigger（違規觸發條件）
+
+以下情況視為 Boundary Violation：
+
+1. metadata 被用於 DSL 可用性判定
+2. coverage_gate 被用於 behavior gate
+3. metadata 被 runtime 使用
+4. metadata 影響 content / validation decision
+
+---
+
+### 6. Schema Contract Extension（落地）
+
+registry.schema.json 必須支援 metadata 結構：
+
+* metadata 類型標記（descriptive / classification / validation_annotation）
+* status enum（allowed / deprecated / experimental）
+* coverage_gate 僅作為 annotation（非 gate）
+
+---
+
+### 7. Validation Rule（強制）
+
+Validation layer 必須：
+
+* 忽略 metadata 對決策的影響
+* 不使用 metadata 作為 gate
+* 僅驗證其結構合法性
+
+---
+
+## Result
+
+建立 metadata 的治理閉環：
+
+1. **Definition**：metadata 為描述層（非決策層）
+2. **Classification**：三種類型強制分類
+3. **Constraint**：禁止 authority 使用
+4. **Validation**：metadata 僅結構驗證
+5. **Enforcement**：違規使用即升級為 Boundary Violation
+
+確保：
+
+* metadata 不會影響 DSL / engine / validation 決策
+* registry 可安全承載 annotation
+* 防止 passive → authority drift
+
+---
+
+## Constraints
+
+* 不修改既有 DSL contract（DD-020）
+* 不修改 registry core role（DD-023）
+* 不改變 AI Workflow 分層（DD-021）
+* 不引入 runtime 行為
+
+所有 metadata 若需升級為決策來源：
+
+> **必須透過 DD + Evolution Mode**
+
+---
+
+## Version Anchor
+
+* Spec Version: **1.4.0**
+* Engine Version: **1.0.0**
+* Structure Version: **1.2.0（unchanged）**
+* Phase: **D.4 – Registry Schema Evolution**
+
+---
+
+## Conclusion
+
+DD-024 將 registry metadata 從：
+
+> **允許存在的描述資訊**
+
+正式提升為：
+
+> **受分類、邊界與驗證約束的治理物件**
+
+並建立：
+
+* passive annotation 與 authority 的明確分界
+* metadata 的可控使用範圍
+* 違規升級機制（Violation Trigger）
+
+確保 registry 在 D.4 階段：
+
+> **維持 mapping layer 定位，不演變為決策層**
+
+---
+

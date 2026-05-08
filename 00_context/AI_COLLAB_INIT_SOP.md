@@ -14,10 +14,36 @@
 
 ---
 
+### Layer Classification
+
+This document is part of:
+
+→ Navigation Layer（DD-022 Defined）
+
+Role:
+
+- Defines AI initialization strategy
+- Works in conjunction with GOVERNANCE_INDEX.md
+- Does NOT replace reading order authority
+
+---
+
 ## 2. Core Principle
 
 > Give each AI only the files required for its role.  
 > Do not over-share governance context into execution tools.
+
+---
+
+### Navigation Reference
+
+For reading order and document priority, refer to:
+
+→ GOVERNANCE_INDEX.md
+
+This document defines:
+- Which files to read first
+- When to escalate to full SSOT
 
 ---
 
@@ -26,7 +52,7 @@
 | AI Role | Core Objective | Required Files | Forbidden / Not Recommended |
 |------|------|------|------|
 | ChatGPT (Governance) | 決策 / 任務下發 / 邊界控制 | State Snapshot、Structure、DD 節錄、Bootstrap 節錄、Workflow、Write Matrix | 不需預先給大量 engine/debug 細節 |
-| ChatGPT (Production) | 程式 / JSON / Debug / Patch | State Snapshot、Task Contract、相關 Schema、行為邏輯文件 | 不應預載完整治理文件 |
+| ChatGPT (Production) | 程式 / JSON / Debug / Patch / Tool Implementation | State Snapshot、Task Contract、相關 Schema、行為邏輯文件；D.4-C 工具任務需加 Tool Contract | 不應預載完整治理文件；不得自行擴充 Tool Contract |
 | Gemini (JIRA Bridge) | 任務轉化 / 進度追蹤 | Gemini Prompt Standard、Task Contract 橋接格式 | 嚴禁給 DD 全文 / PROJECT_STATE.json / DSL 長文 |
 | NotebookLM (SSOT Validator) | Drift 檢查 / 一致性審查 | Structure、State、Workflow、Write Matrix、DD、必要時 Schema | 不需 JIRA 操作指令、不中斷接管設計 |
 
@@ -85,6 +111,18 @@
 4. 任務相關的 engine / data 檔案
 5. `Effect_DSL_Behavior_Logic.md`（若任務涉及 DSL 行為）
 
+### 5.2.1 D.4-C Tool Implementation Add-on
+若任務進入 D.4-C Tool Implementation，必須追加：
+
+1. `D.4-C Tool Contract.md`
+2. `tools/add_schema_uri.py`（若本次任務以 prototype 為基礎）
+3. 目標工具輸出位置與檔名，例如 `sync_registry_to_schema.py`
+
+Purpose:
+- 讓 Production 依 Governance 定義的 Tool Contract 實作
+- 防止工具 scope 漂移
+- 防止 Production 自行改寫 schema / registry / DSL 定義
+
 ### 5.3 不建議預先提供
 原則上不要先給：
 
@@ -104,7 +142,28 @@ Production 新對話開始時，應先確認：
 - Scope
 - Non-Scope
 - Validation
+- Tool Contract（D.4-C 工具任務必須）
 - 是否允許改動 Schema / Governance（通常不允許）
+- 是否允許修改 Registry source content（通常不允許）
+- 是否僅允許產出 patch / script / report
+
+### 5.5 Tool Contract Awareness（D.4-C）
+Production 在 D.4-C 階段必須：
+
+- 理解 `D.4-C Tool Contract.md` 是工具行為的上位 contract
+- 僅依 contract 實作工具
+- 不得自行擴充 scope
+- 不得把 prototype 行為直接升格為正式治理規則
+- 不得修改 schema / registry / DSL 定義，除非 Governance 明確授權
+
+若遇到以下情況：
+
+- contract 不明確
+- 工具行為與 schema / registry / DSL 邊界衝突
+- registry canonical naming 與 schema DSL 不一致
+- implementation 需要新增或改寫 contract
+
+Production 必須停止並回報 Governance，不可自行決策。
 
 ---
 
@@ -241,6 +300,7 @@ NotebookLM 可先用 excerpt 建立語境，
 - `TASK_CONTRACT.md`
 - relevant schema
 - relevant engine / data files
+- `D.4-C Tool Contract.md`（required for D.4-C tool implementation）
 
 ### Gemini Minimal Set
 - `GEMINI_JIRA_PROMPT_STANDARD.md`
@@ -255,7 +315,15 @@ NotebookLM 可先用 excerpt 建立語境，
 
 ---
 
-## 11. Final Rule
+## 11. D.4-C Initialization Rule
+
+When the task is D.4-C Tool Implementation, Production must be initialized with `D.4-C Tool Contract.md`.
+
+Without Tool Contract, Production may inspect files and propose questions, but must not implement or modify tool behavior.
+
+---
+
+## 12. Final Rule
 
 > Excerpts are for orientation.  
 > Full SSOT is for authority.

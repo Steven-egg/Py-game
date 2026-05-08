@@ -14,6 +14,20 @@
 
 ---
 
+### Layer Classification
+
+This document is part of:
+
+→ Navigation Layer（DD-022 Defined）
+
+It serves as the authoritative navigation reference for:
+
+- Reading Order
+- Startup Strategy
+- Cross-role alignment (Governance / Production / Gemini / NotebookLM)
+
+---
+
 ## 2. Core Principle
 
 > Read the minimum set first.  
@@ -36,6 +50,70 @@
 | `GEMINI_JIRA_PROMPT_STANDARD.md` | JIRA Prompt Standard | 定義 Gemini 任務橋接格式 | High |
 | `NOTEBOOKLM_DRIFT_PROMPT_STANDARD.md` | Drift Validation Standard | 定義 NotebookLM Drift 檢查 Prompt | High |
 | `AI_COLLAB_INIT_SOP.md` | Init SOP | 定義各 AI 角色新對話初始化檔案清單與策略 | High |
+| `D.4-C Tool Contract.md` | Tool Contract | 定義 D.4-C 工具行為、邊界與 Production 實作限制 | High |
+
+---
+
+## Phase D.4 Implementation Reference Map
+
+Purpose:
+
+* 明確列出 Phase D.4 實作階段的關鍵工具與參考資源
+* 避免工具意義遺失（knowledge drift）
+
+### D.4-C Registry–Schema Sync Tool
+
+| Tool                                  | Status    | Purpose                         |
+| ------------------------------------- | --------- | ------------------------------- |
+| `tools/add_schema_uri.py`             | Prototype | registry → schema URI 自動補齊與同步工具 |
+| `sync_registry_to_schema.py`          | Active    | 正式版本，將取代 prototype              |
+| `D.4-C Tool Contract.md`               | Contract  | 定義正式工具的 scope / non-scope / validation rules |
+
+### Governance Note
+
+* `tools/add_schema_uri.py` 已被確認為：
+
+  * Phase D.4-C 的原型工具
+  * 未來 `sync_registry_to_schema.py` 的基礎
+
+* 此工具目前 **未能從 SSOT 文件直接推導其意義**
+  → 必須透過：
+
+  * PROJECT_STATE.json notes（治理錨點）
+  * Governance Index（導航層）
+
+進行知識保留
+
+---
+
+## Tool Layer (Execution Bridge – D.4-C)
+
+Purpose:
+- Bridge Governance Contract → Production Execution
+- Preserve the governance meaning of tool-driven enforcement
+- Prevent Production from expanding tool scope beyond the approved contract
+
+Files:
+- `D.4-C Tool Contract.md`
+- `tools/add_schema_uri.py`（Prototype）
+- `sync_registry_to_schema.py`（Active formal tool）
+
+Rules:
+- Tool behavior is defined by Governance through `D.4-C Tool Contract.md`.
+- Production implements the tool only; it does not redefine the contract.
+- Tool execution must not modify:
+  - Schema definitions
+  - Registry source content
+  - DSL definitions
+  - Governance documents
+
+Validation Role:
+- DSL Governance Enforcement（DD-020）
+- Registry–Data Alignment
+- Schema URI Injection / Synchronization
+
+Escalation Rule:
+If the tool contract is ambiguous, or if implementation reveals schema / registry / DSL inconsistency, Production must stop and return to Governance.
 
 ---
 
@@ -63,6 +141,18 @@ Usage Rule:
 ---
 
 ## 4. Reading Order by Scenario
+
+---
+
+## Initialization Strategy Reference
+
+For detailed AI initialization rules, refer to:
+
+→ AI_COLLAB_INIT_SOP.md
+
+This document defines:
+- Role-based startup sets
+- Tool initialization rules (D.4-C)
 
 ---
 
@@ -104,6 +194,7 @@ Usage Rule:
 8. `design_decision_log.md`
 9. `AI_BOOTSTRAP.md`
 10. `AI_COLLAB_INIT_SOP.md`
+11. `D.4-C Tool Contract.md`（若任務已進入 D.4-C 或涉及工具實作）
 
 ---
 
@@ -119,6 +210,11 @@ Usage Rule:
 3. 任務相關 `02_specs/*.schema.json`
 4. 任務相關 `03_data/` or `05_engine/` 檔案
 
+### D.4-C Tool Implementation Add-on
+若任務涉及 D.4-C Tool Implementation，必須追加：
+5. `D.4-C Tool Contract.md`
+6. `tools/add_schema_uri.py`（若以 prototype 為基礎）
+
 ### Optional Reference
 若任務涉及行為語意：
 5. `Effect_DSL_Behavior_Logic.md`
@@ -130,6 +226,8 @@ Usage Rule:
 - need to change structure
 - DSL naming conflict
 - unclear task boundary
+- tool contract ambiguity
+- tool behavior would modify schema / registry / DSL definitions
 
 ---
 
@@ -200,7 +298,12 @@ Gemini 不應讀取：
 4. `NOTEBOOKLM_DRIFT_PROMPT_STANDARD.md`
 5. `AI_COLLAB_INIT_SOP.md`
 
-### 5.5 Bootstrap
+### 5.5 Tool Contract
+1. `D.4-C Tool Contract.md`
+
+Tool Contract only governs tool behavior and implementation boundaries. It does not supersede Structure SSOT, State SSOT, DD, Schema, Registry, or DSL authority.
+
+### 5.6 Bootstrap
 1. `AI_BOOTSTRAP.md`
 2. `AI_BOOTSTRAP(節錄).md`
 
@@ -247,6 +350,7 @@ Gemini 不應讀取：
 - `TASK_CONTRACT.md`
 - relevant schema
 - relevant engine / data files
+- `D.4-C Tool Contract.md`（required for D.4-C tool implementation）
 
 ---
 
@@ -282,9 +386,53 @@ NotebookLM 先做 validator，不做 designer。
 ### Rule 5
 若問題涉及 authority，必須回完整 SSOT。
 
+### Rule 6
+進入 D.4-C Tool Implementation 時，Production 必須讀取 `D.4-C Tool Contract.md`；若工具行為邊界不明，必須回 Governance，不得自行擴權。
+
 ---
 
-## 9. Suggested Maintenance Rule
+## 9. Layer Classification (D.4-C Updated)
+
+Core Governance:
+- `PROJECT_STATE.json`
+- `PROJECT_STRUCTURE.md`
+
+Decision Layer:
+- `design_decision_log.md`
+
+Design Layer:
+- `01_design_docs/*`
+- `DSL-*`
+- Blueprint documents
+- `audit_reports/*`
+
+Navigation Layer:
+- `GOVERNANCE_INDEX.md`
+- `AI_COLLAB_INIT_SOP.md`
+
+Startup Layer:
+- `PROJECT_STATE_SNAPSHOT.md`
+
+Tool Layer:
+- `D.4-C Tool Contract.md`
+- `tools/*`
+
+---
+
+## 10. Governance Reading Order (D.4-C)
+
+When D.4-C Tool Implementation or Navigation Alignment is involved, use the following order:
+
+1. `PROJECT_STATE.json`（Phase / Constraints）
+2. `PROJECT_STRUCTURE.md`（Structure）
+3. `design_decision_log.md`（DD authority）
+4. `GOVERNANCE_INDEX.md`（Navigation）
+5. `AI_COLLAB_INIT_SOP.md`（Initialization）
+6. `D.4-C Tool Contract.md`（Execution Bridge）
+
+---
+
+## 11. Suggested Maintenance Rule
 
 當新增治理文件時，應同步更新本索引中的：
 
@@ -297,7 +445,7 @@ NotebookLM 先做 validator，不做 designer。
 
 ---
 
-## 10. Final Rule
+## 12. Final Rule
 
 > This file tells you what to read first.  
 > It does not replace what those files actually mean.

@@ -1,0 +1,19 @@
+PROJECT_STATE_SNAPSHOT.md
+
+02_specs/schema/
+- quest.schema.json
+- item.schema.json
+- monster.schema.json
+
+03_data/registries/
+- flags.registry.json
+- vars.registry.json
+
+03_data/quests/
+- test_complex_trial.json
+- test_kill3_slime.json
+- test_kill_slime.json
+- test_story_gate.json
+- test_quest.json
+
+03_data/registries/registry.fixture.json

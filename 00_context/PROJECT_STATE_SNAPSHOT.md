@@ -39,6 +39,7 @@ Next Focus:
 - DSL naming normalization
 - coverage expansion
 - REG-003 completed: registry migration + validation PASS
+- REG-004 completed: Registry–Schema Alignment Audit completed; metadata classified as passive annotation, with Governance Ambiguity / Boundary Tension noted.
 
 ## Version Anchoring
 

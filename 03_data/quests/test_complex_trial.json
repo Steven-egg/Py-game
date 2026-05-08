@@ -20,9 +20,9 @@
     "params": {
       "conditions": [
         {
-          "type": "flag.int_compare",
+          "type": "var.int_compare",
           "params": {
-            "key": "flg.kill.goblin.count",
+            "key": "var.kill.goblin.count",
             "op": "gte",
             "value": 3
           }
@@ -70,5 +70,6 @@
       }
     ],
     "reward_text_key": "txt.quest.elite.trial_of_balance.reward"
-  }
+  },
+  "$schema": "02_specs/schema/quest.schema.json"
 }

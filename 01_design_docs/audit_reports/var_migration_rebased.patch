@@ -1,0 +1,161 @@
+--- a/flags.registry.json
++++ b/flags.registry.json
+@@ -2,30 +2,6 @@
+   "registry_type": "flag_registry",
+   "registry_version": "1.4.0",
+   "entries": [
+-    {
+-      "id": "flag.flg.kill.slime.count",
+-      "canonical_name": "flg.kill.slime.count",
+-      "domain": "flag",
+-      "status": "allowed",
+-      "reason": "Migrated from legacy flags registry list.",
+-      "source_layer": "content_reference",
+-      "coverage_gate": {
+-        "schema": true,
+-        "behavior": false
+-      }
+-    },
+-    {
+-      "id": "flag.flg.kill.wolf.count",
+-      "canonical_name": "flg.kill.wolf.count",
+-      "domain": "flag",
+-      "status": "allowed",
+-      "reason": "Migrated from legacy flags registry list.",
+-      "source_layer": "content_reference",
+-      "coverage_gate": {
+-        "schema": true,
+-        "behavior": false
+-      }
+-    },
+     {
+       "id": "flag.flg.quest.q_main_first_blood.completed",
+       "canonical_name": "flg.quest.q_main_first_blood.completed",
+@@ -111,4 +87,4 @@
+       }
+     }
+   ]
+-}+}
+--- a/vars.registry.json
++++ b/vars.registry.json
+@@ -9,7 +9,58 @@
+       "status": "allowed",
+       "reason": "Migrated from legacy vars registry list.",
+       "source_layer": "content_reference",
+-      "coverage_gate": { "schema": true, "behavior": false }
++      "coverage_gate": {
++        "schema": true,
++        "behavior": false
++      }
++    },
++    {
++      "id": "var.kill.slime.count",
++      "canonical_name": "var.kill.slime.count",
++      "domain": "save",
++      "status": "allowed",
++      "reason": "Migrated from numeric flag state to var namespace per state modeling normalization.",
++      "source_layer": "content_reference",
++      "coverage_gate": {
++        "schema": true,
++        "behavior": false
++      }
++    },
++    {
++      "id": "var.kill.goblin.count",
++      "canonical_name": "var.kill.goblin.count",
++      "domain": "save",
++      "status": "allowed",
++      "reason": "Added for numeric goblin kill count per state modeling normalization.",
++      "source_layer": "content_reference",
++      "coverage_gate": {
++        "schema": true,
++        "behavior": false
++      }
++    },
++    {
++      "id": "var.kill.wolf.count",
++      "canonical_name": "var.kill.wolf.count",
++      "domain": "save",
++      "status": "allowed",
++      "reason": "Migrated from numeric flag state to var namespace per state modeling normalization.",
++      "source_layer": "content_reference",
++      "coverage_gate": {
++        "schema": true,
++        "behavior": false
++      }
++    },
++    {
++      "id": "var.test.phase_c.counter",
++      "canonical_name": "var.test.phase_c.counter",
++      "domain": "save",
++      "status": "allowed",
++      "reason": "Migrated from numeric flag counter to var namespace per state modeling normalization.",
++      "source_layer": "content_reference",
++      "coverage_gate": {
++        "schema": true,
++        "behavior": false
++      }
+     }
+   ]
+-}+}
+--- a/test_complex_trial.json
++++ b/test_complex_trial.json
+@@ -20,9 +20,9 @@
+     "params": {
+       "conditions": [
+         {
+-          "type": "flag.int_compare",
++          "type": "var.int_compare",
+           "params": {
+-            "key": "flg.kill.goblin.count",
++            "key": "var.kill.goblin.count",
+             "op": "gte",
+             "value": 3
+           }
+--- a/test_kill_slime.json
++++ b/test_kill_slime.json
+@@ -16,9 +16,9 @@
+     }
+   },
+   "complete_condition": {
+-    "type": "flag.int_compare",
++    "type": "var.int_compare",
+     "params": {
+-      "key": "flg.kill.slime.count",
++      "key": "var.kill.slime.count",
+       "op": "gte",
+       "value": 5
+     }
+--- a/test_kill3_slime.json
++++ b/test_kill3_slime.json
+@@ -16,9 +16,9 @@
+     }
+   },
+   "complete_condition": {
+-    "type": "flag.int_compare",
++    "type": "var.int_compare",
+     "params": {
+-      "key": "flg.kill.slime.count",
++      "key": "var.kill.slime.count",
+       "op": "gte",
+       "value": 3
+     }
+--- a/test_quest.json
++++ b/test_quest.json
+@@ -47,13 +47,13 @@
+         }
+       },
+       {
+-        "type": "flag.add_int",
++        "type": "var.add_int",
+         "target": {
+           "world": "global"
+         },
+         "params": {
+-          "key": "flg.test.phase_c.counter",
+-          "delta": 7
++          "key": "var.test.phase_c.counter",
++          "value": 7
+         }
+       },
+       {

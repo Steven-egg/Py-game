@@ -24,5 +24,6 @@
     },
     "on_equip_effects": [],
     "on_unequip_effects": []
-  }
+  },
+  "$schema": "02_specs/schema/item.schema.json"
 }

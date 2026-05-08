@@ -73,6 +73,42 @@
         "schema": true,
         "behavior": false
       }
+    },
+    {
+      "id": "flag.flg.story.gate.gate_unlocked",
+      "canonical_name": "flg.story.gate.gate_unlocked",
+      "domain": "flag",
+      "status": "allowed",
+      "reason": "Added per Governance alignment (story gate progression).",
+      "source_layer": "content_reference",
+      "coverage_gate": {
+        "schema": true,
+        "behavior": false
+      }
+    },
+    {
+      "id": "flag.flg.quest.elite.trial_of_balance_completed",
+      "canonical_name": "flg.quest.elite.trial_of_balance_completed",
+      "domain": "flag",
+      "status": "allowed",
+      "reason": "Added per Governance alignment (elite quest completion).",
+      "source_layer": "content_reference",
+      "coverage_gate": {
+        "schema": true,
+        "behavior": false
+      }
+    },
+    {
+      "id": "flag.flg.quest.side.slime_hunt.completed",
+      "canonical_name": "flg.quest.side.slime_hunt.completed",
+      "domain": "flag",
+      "status": "allowed",
+      "reason": "Added per Governance alignment (side quest completion canonical form).",
+      "source_layer": "content_reference",
+      "coverage_gate": {
+        "schema": true,
+        "behavior": false
+      }
     }
   ]
 }

@@ -16,9 +16,9 @@
     }
   },
   "complete_condition": {
-    "type": "flag.int_compare",
+    "type": "var.int_compare",
     "params": {
-      "key": "flg.kill.slime.count",
+      "key": "var.kill.slime.count",
       "op": "gte",
       "value": 3
     }
@@ -47,5 +47,6 @@
       }
     ],
     "reward_text_key": "txt.quest.side.slime_hunt_3.reward"
-  }
+  },
+  "$schema": "02_specs/schema/quest.schema.json"
 }

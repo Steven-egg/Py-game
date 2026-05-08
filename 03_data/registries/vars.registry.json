@@ -9,7 +9,58 @@
       "status": "allowed",
       "reason": "Migrated from legacy vars registry list.",
       "source_layer": "content_reference",
-      "coverage_gate": { "schema": true, "behavior": false }
+      "coverage_gate": {
+        "schema": true,
+        "behavior": false
+      }
+    },
+    {
+      "id": "var.kill.slime.count",
+      "canonical_name": "var.kill.slime.count",
+      "domain": "save",
+      "status": "allowed",
+      "reason": "Migrated from numeric flag state to var namespace per state modeling normalization.",
+      "source_layer": "content_reference",
+      "coverage_gate": {
+        "schema": true,
+        "behavior": false
+      }
+    },
+    {
+      "id": "var.kill.goblin.count",
+      "canonical_name": "var.kill.goblin.count",
+      "domain": "save",
+      "status": "allowed",
+      "reason": "Added for numeric goblin kill count per state modeling normalization.",
+      "source_layer": "content_reference",
+      "coverage_gate": {
+        "schema": true,
+        "behavior": false
+      }
+    },
+    {
+      "id": "var.kill.wolf.count",
+      "canonical_name": "var.kill.wolf.count",
+      "domain": "save",
+      "status": "allowed",
+      "reason": "Migrated from numeric flag state to var namespace per state modeling normalization.",
+      "source_layer": "content_reference",
+      "coverage_gate": {
+        "schema": true,
+        "behavior": false
+      }
+    },
+    {
+      "id": "var.test.phase_c.counter",
+      "canonical_name": "var.test.phase_c.counter",
+      "domain": "save",
+      "status": "allowed",
+      "reason": "Migrated from numeric flag counter to var namespace per state modeling normalization.",
+      "source_layer": "content_reference",
+      "coverage_gate": {
+        "schema": true,
+        "behavior": false
+      }
     }
   ]
 }

@@ -1,7 +1,7 @@
 # Design Decision Log
 
 
-## DD-020
+# DD-020
 
 Date: 2026-04-15
 Title: Effect DSL Governance Charter（Naming / Boundary / Coverage 統一治理）
@@ -166,458 +166,6 @@ DD-020 將 Effect DSL 從「實作導向能力集合」提升為：
 
 ---
 
-
-# DD-021 – AI Collaboration Workflow Governance
-
-## Status
-Accepted
-
-## Date
-2026-04-18
-
-## Context
-
-隨著專案進入 Phase D.4（Evolution Blueprint 準備階段），  
-系統開發流程已同時涉及：
-
-- DSL 設計（01_design_docs）
-- 任務管理（JIRA）
-- 實作（05_engine / 03_data）
-- SSOT 驗證（NotebookLM）
-
-在單一 AI 對話中同時處理上述層級，已觀察到以下問題：
-
-1. Context Leakage（語境混用）  
-   - JIRA 任務內容混入 DSL / Audit 規範  
-   - AI 角色混淆（Spec Auditor vs Task Executor）
-
-2. Boundary Violation（邊界破壞）  
-   - JIRA 被用作設計文件承載  
-   - Production 嘗試修改 DSL / Schema
-
-3. Traceability Degradation（可追溯性下降）  
-   - 任務紀錄無法區分「執行」與「設計決策」
-
-為確保系統維持 SSOT、一致性與可演進性，需建立正式之 AI 協作治理機制。
-
----
-
-## Decision
-
-採用「AI Collaboration Workflow」作為專案之正式治理規則，並定義如下分工與邊界：
-
-### 1. Role Separation（角色分離）
-
-#### ChatGPT（Governance）
-- 負責 DSL / Blueprint / audit_reports / SOP
-- 負責任務拆解（設計 → 任務）
-
-#### ChatGPT（Production）
-- 負責 code / JSON / Debug
-- 不得主動修改 DSL / Schema
-
-#### Gemini（JIRA Bridge）
-- 負責 JIRA 操作與轉換（Task / Comment）
-- 不得參與 DSL / Schema 設計
-
-#### JIRA
-- 僅作為任務追蹤系統
-- 不得承載設計文件或 DSL 規範
-
-#### NotebookLM
-- 作為 SSOT Validator
-- 檢查 DSL / Schema / Data 是否發生 Drift
-
----
-
-### 2. Boundary Enforcement（邊界強制）
-
-以下規則為強制：
-
-- JIRA 不得存放：
-  - DSL 規範
-  - Gate 判讀
-  - Schema 設計
-- Production 不得修改 DSL / Schema
-- Governance 不直接進行 runtime 實作
-- NotebookLM 不以 JIRA 作為 SSOT 判斷依據
-
-違反上述規則視為 **Context Drift / Boundary Violation**。
-
----
-
-### 3. Workflow Definition（流程定義）
-
-標準流程如下：
-
-
-Governance（DSL / Blueprint）
-↓
-Task Decomposition
-↓
-JIRA（任務建立與追蹤）
-↓
-Production（實作）
-↓
-NotebookLM（SSOT 驗證）
-↓
-Feedback → Governance（必要時修正）
-
-
----
-
-### 4. SSOT Alignment（單一真實來源）
-
-SSOT 判斷優先順序：
-
-1. 00_context（Governance 規則）
-2. 01_design_docs（DSL / Audit）
-3. 02_specs（Schema）
-4. 03_data（內容）
-
-JIRA 不屬於 SSOT。
-
----
-
-### 5. Governance Artifact
-
-本決策對應治理文件：
-
-- `00_context/AI_COLLAB_WORKFLOW.md`
-
-該文件作為：
-
-- AI 協作規則定義
-- 分層邊界控制依據
-- Drift Prevention 規範
-
----
-
-## Consequences
-
-### Positive
-
-- 明確隔離設計 / 任務 / 實作三層
-- 降低 AI 語境污染（Context Leakage）
-- 提升 JIRA 可讀性與可維護性
-- 強化 SSOT 一致性與驗證能力
-
----
-
-### Negative / Trade-offs
-
-- 增加初期操作複雜度（多對話 / 多工具）
-- 需要維持跨層溝通（Feedback Loop）
-
----
-
-### Risk Mitigation
-
-- 使用 NotebookLM 作為統一 SSOT Validator
-- 透過 JIRA 僅追蹤任務，不承載設計
-- Governance 層統一管理 DSL 與規範
-
----
-
-## Notes
-
-本決策不改變既有 DSL / Schema / Engine 設計，  
-僅針對「AI 協作流程」與「任務治理模式」進行規範化。
-
-本決策為 Phase D.4 啟動前之治理基礎，  
-後續 Evolution Mode 啟動須遵循本規則執行。
-
-
----
-
-好，這一步我直接幫你做到**可落地、可寫入、可執行**的正式版本。
-以下內容你可以**直接貼進 `design_decision_log.md`**。
-
----
-
-# 📄 DD-022 – Governance Layer Normalization & Structure Alignment
-
-## Status
-
-Accepted
-
-## Date
-
-2026-04-20
-
-## Impact
-
-High
-
-## Scope
-
-* 00_context（Governance Layer）
-* 03_data（Structure Extension – registries）
-* GOVERNANCE_INDEX.md（Navigation Alignment）
-
----
-
-## 1. Context（背景）
-
-在 Phase D.3 完成後，專案進入 D.4 準備階段，
-透過 NotebookLM Drift Audit 發現以下問題：
-
----
-
-### 1.1 Naming Drift（命名不一致）
-
-* `PROJECT_STATE.json` 採 Canonical Uppercase
-* `Project_Context_v1_bootstrap.json` 採 mixed naming + version suffix
-* `Project_Soul.json` 採 PascalCase
-
-👉 導致：
-
-* AI 難以辨識 authority file
-* 增加跨對話 context drift 風險
-
----
-
-### 1.2 Structure Drift（結構未對齊）
-
-* `03_data/registries/` 已實際存在
-* 但未被 `PROJECT_STRUCTURE.md` 定義
-
-👉 屬於：
-
-
-Structure SSOT 與實體結構不一致
-
-
----
-
-### 1.3 Navigation 不一致（讀取層優化需求）
-
-* Snapshot 已加入 `AI Quick Context`
-* 但 GOVERNANCE_INDEX 尚未反映「快速初始化層」
-
-👉 導致：
-
-* INIT_SOP 與實際使用模式略有偏差
-
----
-
-## 2. Decision（決策）
-
-本 DD 定義三項治理演進：
-
----
-
-## 2.1 Governance Naming Normalization（命名標準化）
-
-### Decision
-
-將 Governance Layer JSON 檔案統一為：
-
-
-CANONICAL UPPERCASE + snake_case
-
-
----
-
-### Rename Mapping
-
-
-Project_Context_v1_bootstrap.json → PROJECT_CONTEXT.json
-Project_Soul.json                → PROJECT_SOUL.json
-
-
----
-
-### Rules
-
-1. ❌ 禁止 version suffix（如 v1, v2）
-2. ❌ 禁止 PascalCase / mixedCase
-3. ✔ 統一使用：
-
-   * `PROJECT_*`
-   * `UPPERCASE_WITH_UNDERSCORE`
-
----
-
-### Rationale
-
-* 強化 AI 對「authority file」辨識
-* 降低 naming drift
-* 對齊 `PROJECT_STATE.json`
-
----
-
-## 2.2 Structure Extension（registries 正式納入）
-
-### Decision
-
-正式將以下目錄納入 Structure SSOT：
-
-
-03_data/
-  registries/
-
-
----
-
-### Definition
-
-
-registries = cross-entity mapping / lookup layer
-
-
-用途：
-
-* DSL registry
-* effect mapping
-* future schema-driven injection
-
----
-
-### Constraint
-
-* 不改變既有 content contract
-* 不影響 loader 行為
-* 不影響 engine runtime
-
----
-
-### Rationale
-
-* registry 已在 Phase D.3 實際使用
-* 屬於 Schema–Data 中介層
-* 為 D.4（Registry–Schema Sync）預備
-
----
-
-## 2.3 Navigation Layer Alignment（讀取層對齊）
-
-### Decision
-
-將以下概念正式納入治理：
-
-
-AI Quick Context = Startup Layer
-
-
----
-
-### Classification Update
-
-| Layer               | Files                                       |
-| ------------------- | ------------------------------------------- |
-| Core Governance     | PROJECT_STATE.json / PROJECT_STRUCTURE.md   |
-| Decision History    | design_decision_log.md                      |
-| Navigation Layer    | GOVERNANCE_INDEX.md / AI_COLLAB_INIT_SOP.md |
-| Startup Layer (NEW) | PROJECT_STATE_SNAPSHOT.md (Quick Context)   |
-
----
-
-### Rule
-
-
-Startup Layer = 快速初始化（非 authority）
-
-
----
-
-### Rationale
-
-* 對齊 INIT_SOP 的 minimal startup strategy
-* 降低 token 成本
-* 提高 AI 初始化穩定性
-
----
-
-## 3. Implementation（實作步驟）
-
----
-
-### Step 1 – 檔名調整
-
-git mv 00_context/Project_Context_v1_bootstrap.json 00_context/PROJECT_CONTEXT.json
-git mv 00_context/Project_Soul.json 00_context/PROJECT_SOUL.json
-
----
-
-### Step 2 – 更新 PROJECT_STRUCTURE.md
-
-新增：
-
-03_data/
-  registries/
-
----
-
-### Step 3 – 更新 GOVERNANCE_INDEX.md
-
-新增：
-
-Startup Layer:
-- PROJECT_STATE_SNAPSHOT.md (AI Quick Context)
-
----
-
-### Step 4 – 更新 PROJECT_STATE.json
-
-在 `notes` 或 `governance_extensions` 補：
-
-"DD-022 established: Governance Naming + Structure Alignment + Startup Layer introduction"
-
----
-
-### Step 5 – Drift Audit（驗證）
-
-使用 NotebookLM 檢查：
-
-* structure alignment
-* naming consistency
-* SSOT integrity
-
----
-
-## 4. Constraints（限制）
-
-* ❌ 不修改 schema（Spec 1.3.0 保持）
-* ❌ 不修改 engine
-* ❌ 不修改 content JSON
-* ❌ 不改變 workflow（DD-021）
-
----
-
-## 5. Consequences（影響）
-
----
-
-### Positive
-
-* 消除 naming drift
-* 修復 structure SSOT 不一致
-* 強化 AI 初始化穩定性
-* 為 Phase D.4 建立基礎
-
----
-
-### Trade-off
-
-* 需要一次性檔名遷移（git history 變更）
-* GOVERNANCE_INDEX 需同步維護
-
----
-
-## 6. Final State（完成後狀態）
-
-✔ Naming fully canonical
-✔ Structure fully aligned
-✔ Startup layer established
-✔ Ready for Phase D.4
-
-### Approval
-
-Approved by: Governance (User)
-Effective Date: 2026-04-20
-
----
 
 # 📄 DD-023 – Registry Schema Introduction (Contractization Decision)
 
@@ -826,5 +374,244 @@ Entering Evolution Mode (Spec Version 1.3.0 → 1.4.0)
 
 * Approved by: Governance (User)
 * Effective Date: 2026-04-22
+
+---
+
+# 📄 DD-024 – Registry Metadata Governance Contract
+
+## Status
+
+Accepted
+
+## Date
+
+2026-05-01
+
+## Impact
+
+High
+
+## Scope
+
+* 02_specs/schema（registry metadata contract）
+* 03_data/registries（metadata 使用限制）
+* Validation Layer（metadata interpretation）
+* Governance Layer（authority boundary definition）
+
+---
+
+## Reason
+
+在 Phase D.4（Registry Schema Evolution）中，
+
+* registry 已納入 schema contract（DD-023）
+* 並允許包含 metadata / coverage 標記
+
+但 REG-004 Audit 發現：
+
+1. registry metadata 雖為合法存在，但缺乏分類與語義定義
+2. metadata 與 DSL / validation / runtime 的權限邊界未明確
+3. coverage_gate 等欄位具有潛在 authority 誤用風險
+4. passive annotation 與 decision source 未被制度性區分
+
+上述問題本質為：
+
+> **metadata 已存在，但尚未形成可治理的 contract**
+
+需建立統一規則，以防止 metadata 從描述性資訊漂移為決策來源（authority drift）。
+
+---
+
+## Decision
+
+建立 **Registry Metadata Governance Contract**，定義 metadata 的：
+
+* 類型（Type Classification）
+* 使用邊界（Authority Boundary）
+* 合法用途（Allow List）
+* 違規觸發條件（Violation Trigger）
+
+---
+
+### 1. Metadata 定位（強制）
+
+Registry metadata 定義為：
+
+> **Passive Descriptive Annotation（被動描述性註記）**
+
+---
+
+### 2. Metadata 分類（強制）
+
+所有 metadata 必須屬於以下三類：
+
+#### (A) Descriptive Metadata
+
+用途：說明語義或來源
+範例：`reason`, `source_layer`
+
+---
+
+#### (B) Classification Metadata
+
+用途：分類與分群
+範例：`domain`, `status`
+
+---
+
+#### (C) Validation Annotation
+
+用途：記錄驗證狀態（非權威）
+範例：`coverage_gate`
+
+---
+
+#### 禁止類型
+
+不得存在：
+
+* Execution metadata（影響 runtime）
+* Decision metadata（影響 DSL / validation 判定）
+
+---
+
+### 3. Authority Boundary（強制）
+
+Registry metadata 不得用於：
+
+---
+
+#### ❌ DSL Authority
+
+* 定義 DSL
+* 修改 canonical naming
+
+👉 DSL authority 僅來自 schema（DD-020）
+
+---
+
+#### ❌ Behavior Coverage 判定
+
+* 不得用於判定 effect 是否可用
+* 不得作為 Behavior Gate
+
+👉 coverage authority 來自 validation / engine
+
+---
+
+#### ❌ Runtime Input
+
+* 不得進入 engine
+* 不得影響 dispatch / condition
+
+---
+
+#### ❌ Content Decision
+
+* 不得影響 content_manifest
+* 不得作為內容生成或驗證依據
+
+---
+
+### 4. Allow List（唯一允許用途）
+
+Registry metadata 僅允許：
+
+* Documentation（說明 / trace）
+* Tooling（filter / display / visualization）
+* Debug / Audit context（非決策）
+
+---
+
+### 5. Violation Trigger（違規觸發條件）
+
+以下情況視為 Boundary Violation：
+
+1. metadata 被用於 DSL 可用性判定
+2. coverage_gate 被用於 behavior gate
+3. metadata 被 runtime 使用
+4. metadata 影響 content / validation decision
+
+---
+
+### 6. Schema Contract Extension（落地）
+
+registry.schema.json 必須支援 metadata 結構：
+
+* metadata 類型標記（descriptive / classification / validation_annotation）
+* status enum（allowed / deprecated / experimental）
+* coverage_gate 僅作為 annotation（非 gate）
+
+---
+
+### 7. Validation Rule（強制）
+
+Validation layer 必須：
+
+* 忽略 metadata 對決策的影響
+* 不使用 metadata 作為 gate
+* 僅驗證其結構合法性
+
+---
+
+## Result
+
+建立 metadata 的治理閉環：
+
+1. **Definition**：metadata 為描述層（非決策層）
+2. **Classification**：三種類型強制分類
+3. **Constraint**：禁止 authority 使用
+4. **Validation**：metadata 僅結構驗證
+5. **Enforcement**：違規使用即升級為 Boundary Violation
+
+確保：
+
+* metadata 不會影響 DSL / engine / validation 決策
+* registry 可安全承載 annotation
+* 防止 passive → authority drift
+
+---
+
+## Constraints
+
+* 不修改既有 DSL contract（DD-020）
+* 不修改 registry core role（DD-023）
+* 不改變 AI Workflow 分層（DD-021）
+* 不引入 runtime 行為
+
+所有 metadata 若需升級為決策來源：
+
+> **必須透過 DD + Evolution Mode**
+
+---
+
+## Version Anchor
+
+* Spec Version: **1.4.0**
+* Engine Version: **1.0.0**
+* Structure Version: **1.2.0（unchanged）**
+* Phase: **D.4 – Registry Schema Evolution**
+
+---
+
+## Conclusion
+
+DD-024 將 registry metadata 從：
+
+> **允許存在的描述資訊**
+
+正式提升為：
+
+> **受分類、邊界與驗證約束的治理物件**
+
+並建立：
+
+* passive annotation 與 authority 的明確分界
+* metadata 的可控使用範圍
+* 違規升級機制（Violation Trigger）
+
+確保 registry 在 D.4 階段：
+
+> **維持 mapping layer 定位，不演變為決策層**
 
 ---

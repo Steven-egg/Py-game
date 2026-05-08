@@ -29,5 +29,6 @@
         }
       }
     ]
-  }
+  },
+  "$schema": "02_specs/schema/item.schema.json"
 }
